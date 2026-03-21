@@ -12,12 +12,11 @@ import type { AppState } from './types'
 export default function App() {
   const [appState, setAppState]   = useState<AppState>('landing')
   const [engine, setEngine]       = useState<HarmonicEngine | null>(null)
-  const [faceEnabled, setFaceEnabled] = useState(false)
+  const [camStream, setCamStream] = useState<MediaStream | null>(null)
   const sceneWrap = useRef<HTMLDivElement>(null)
 
-  // Ref-based audio — no React re-renders for the 3D scene
   const audioDataRef = useAudioData(engine)
-  const { landmarks, videoRef } = useFaceMesh(faceEnabled)
+  const { landmarks, videoRef } = useFaceMesh(camStream)
 
   const revealScene = useCallback((nextState: 'constellation' | 'fallback') => {
     setAppState(nextState)
@@ -33,8 +32,14 @@ export default function App() {
     const e = new HarmonicEngine()
     await e.init(mic ?? undefined)
     setEngine(e)
-    if (cam) { setFaceEnabled(true); revealScene('constellation') }
-    else revealScene('fallback')
+
+    if (cam) {
+      // Pass the SAME stream to useFaceMesh — no second getUserMedia
+      setCamStream(cam)
+      revealScene('constellation')
+    } else {
+      revealScene('fallback')
+    }
   }, [revealScene])
 
   const handleDeny = useCallback(async () => {
@@ -49,11 +54,13 @@ export default function App() {
       opacity: 0, duration: 1.2, ease: 'power2.inOut',
       onComplete: () => {
         engine?.suspend()
-        setFaceEnabled(false)
+        // Stop cam stream
+        camStream?.getTracks().forEach(t => t.stop())
+        setCamStream(null)
         setAppState('landing')
       },
     })
-  }, [engine])
+  }, [engine, camStream])
 
   useEffect(() => { engine?.resume() }, [engine])
   useEffect(() => () => { engine?.destroy() }, [engine])
@@ -64,7 +71,7 @@ export default function App() {
         <Scene audioDataRef={audioDataRef} landmarks={landmarks} appState={appState} />
       </div>
 
-      {/* Video must be visible to browser for MediaPipe to read frames */}
+      {/* Video element for MediaPipe — must be in DOM and renderable (not display:none) */}
       <video
         ref={videoRef}
         style={{

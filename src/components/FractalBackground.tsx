@@ -5,10 +5,10 @@ import { backgroundVert, backgroundFrag } from '../shaders'
 import type { AudioData } from '../types'
 
 interface Props {
-  audioData: AudioData
+  audioDataRef: React.RefObject<AudioData>
 }
 
-export function FractalBackground({ audioData }: Props) {
+export function FractalBackground({ audioDataRef }: Props) {
   const matRef = useRef<THREE.ShaderMaterial>(null)
   const { viewport } = useThree()
 
@@ -21,13 +21,13 @@ export function FractalBackground({ audioData }: Props) {
 
   useFrame(({ clock }) => {
     if (!matRef.current) return
+    const ad = audioDataRef.current
     matRef.current.uniforms.uTime.value = clock.getElapsedTime()
-    matRef.current.uniforms.uBass.value = audioData.bass
-    matRef.current.uniforms.uMid.value  = audioData.mid
-    matRef.current.uniforms.uRms.value  = audioData.rms
+    matRef.current.uniforms.uBass.value = ad.bass
+    matRef.current.uniforms.uMid.value  = ad.mid
+    matRef.current.uniforms.uRms.value  = ad.rms
   })
 
-  // Cover the full viewport regardless of camera position
   const w = viewport.width  * 4
   const h = viewport.height * 4
 

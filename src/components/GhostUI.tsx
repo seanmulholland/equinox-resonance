@@ -1,10 +1,11 @@
 /**
  * GhostUI — the non-intrusive control layer.
  * Only visible when the mouse moves. Auto-hides after 3s.
- * Glassmorphism: blur 10px, opacity ~0.1 base.
+ * CRITICAL: wrapper is ALWAYS pointerEvents:'none' so OrbitControls drag works.
+ * Only the bars themselves capture events.
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { gsap } from 'gsap'
 import type { AppState } from '../types'
 
@@ -18,56 +19,47 @@ export function GhostUI({ appState, onReturnToLanding }: Props) {
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [visible, setVisible] = useState(false)
 
-  function show() {
-    if (!visible) {
-      setVisible(true)
-      gsap.to(uiRef.current, { opacity: 1, duration: 0.4 })
-    }
+  const show = useCallback(() => {
+    setVisible(true)
+    gsap.to(uiRef.current, { opacity: 1, duration: 0.4 })
     if (hideTimer.current) clearTimeout(hideTimer.current)
-    hideTimer.current = setTimeout(hide, 3000)
-  }
-
-  function hide() {
-    gsap.to(uiRef.current, { opacity: 0, duration: 0.8, onComplete: () => setVisible(false) })
-  }
+    hideTimer.current = setTimeout(() => {
+      gsap.to(uiRef.current, { opacity: 0, duration: 0.8, onComplete: () => setVisible(false) })
+    }, 3000)
+  }, [])
 
   useEffect(() => {
-    window.addEventListener('mousemove', show)
-    window.addEventListener('touchstart', show)
+    const handler = () => show()
+    window.addEventListener('mousemove', handler)
+    window.addEventListener('touchstart', handler)
     return () => {
-      window.removeEventListener('mousemove', show)
-      window.removeEventListener('touchstart', show)
+      window.removeEventListener('mousemove', handler)
+      window.removeEventListener('touchstart', handler)
       if (hideTimer.current) clearTimeout(hideTimer.current)
     }
-  }, [visible])
+  }, [show])
 
   if (appState === 'landing' || appState === 'requesting') return null
 
   return (
     <div
       ref={uiRef}
-      style={{
-        ...styles.wrapper,
-        opacity: 0,
-        pointerEvents: visible ? 'auto' : 'none',
-      }}
+      style={{ ...styles.wrapper, opacity: 0 }}
     >
-      {/* Top bar */}
-      <div style={styles.topBar}>
-        <span style={styles.logo}>✦ Equinox Resonance</span>
+      <div style={{ ...styles.topBar, pointerEvents: visible ? 'auto' : 'none' }}>
+        <span style={styles.logo}>&#10022; Equinox Resonance</span>
         <button onClick={onReturnToLanding} style={styles.ghostBtn}>
-          ← Return
+          &#8592; Return
         </button>
       </div>
 
-      {/* Bottom hint */}
       <div style={styles.bottomBar}>
         <span style={styles.hint}>
           {appState === 'constellation'
-            ? 'your face — the constellation'
-            : 'sacred geometry — fallback mode'}
+            ? 'your face \u2014 the constellation'
+            : 'sacred geometry \u2014 fallback mode'}
         </span>
-        <span style={styles.hint}>drag to orbit · equinox 2026</span>
+        <span style={styles.hint}>drag to orbit &middot; equinox 2026</span>
       </div>
     </div>
   )
@@ -85,7 +77,7 @@ const styles: Record<string, React.CSSProperties> = {
   wrapper: {
     position: 'fixed',
     inset: 0,
-    pointerEvents: 'none',
+    pointerEvents: 'none',    // ALWAYS none — never capture drag events
     zIndex: 50,
     display: 'flex',
     flexDirection: 'column',
@@ -98,7 +90,6 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '10px 20px',
-    pointerEvents: 'auto',
   },
   logo: {
     fontSize: '0.85rem',

@@ -1,5 +1,5 @@
-import { Suspense, useMemo, useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Suspense, useMemo } from 'react'
+import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { EffectComposer, Bloom, ToneMapping } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
@@ -15,7 +15,10 @@ interface Props {
   appState: AppState
 }
 
-// Inner component — reads from ref each frame, no prop-drilling re-renders
+/**
+ * All child components receive audioDataRef directly and read .current
+ * inside their own useFrame callback — no prop stale-ness issues.
+ */
 function SceneInner({ audioDataRef, landmarks, appState }: Props) {
   const bgPositions = useMemo(() => fermatSpiral(6000), [])
   const bgScaled = useMemo(() => {
@@ -28,21 +31,18 @@ function SceneInner({ audioDataRef, landmarks, appState }: Props) {
     return out
   }, [bgPositions])
 
-  // Live audio snapshot read each frame
-  const liveAudio = useRef<AudioData>({
-    frequency: new Float32Array(0), waveform: new Float32Array(0),
-    bass: 0, mid: 0, high: 0, rms: 0,
-  })
-  useFrame(() => { liveAudio.current = audioDataRef.current })
-
   const mode = appState === 'constellation' ? 'constellation' : 'fallback'
 
   return (
     <>
-      <FractalBackground audioData={liveAudio.current} />
-      <ParticleField    positions={bgScaled} audioData={liveAudio.current} />
+      <FractalBackground audioDataRef={audioDataRef} />
+      <ParticleField     audioDataRef={audioDataRef} positions={bgScaled} />
       <group position={[0, -0.3, 0]}>
-        <AvatarConstellation landmarks={landmarks} audioData={liveAudio.current} mode={mode} />
+        <AvatarConstellation
+          audioDataRef={audioDataRef}
+          landmarks={landmarks}
+          mode={mode}
+        />
       </group>
       <OrbitControls
         target={[0, -0.3, 0]}

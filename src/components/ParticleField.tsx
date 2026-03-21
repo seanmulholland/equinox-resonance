@@ -5,11 +5,11 @@ import { particlesVert, particlesFrag } from '../shaders'
 import type { AudioData } from '../types'
 
 interface Props {
+  audioDataRef: React.RefObject<AudioData>
   positions: Float32Array
-  audioData: AudioData
 }
 
-export function ParticleField({ positions, audioData }: Props) {
+export function ParticleField({ audioDataRef, positions }: Props) {
   const matRef = useRef<THREE.ShaderMaterial>(null)
   const count  = positions.length / 3
 
@@ -26,15 +26,16 @@ export function ParticleField({ positions, audioData }: Props) {
     uMid:               { value: 0 },
     uRms:               { value: 0 },
     uSize:              { value: 2.5 },
-    uConstellationMode: { value: 0.0 }, // always fallback palette for bg
+    uConstellationMode: { value: 0.0 },
   }), [])
 
   useFrame(({ clock }) => {
     if (!matRef.current) return
+    const ad = audioDataRef.current
     matRef.current.uniforms.uTime.value = clock.getElapsedTime()
-    matRef.current.uniforms.uBass.value = audioData.bass
-    matRef.current.uniforms.uMid.value  = audioData.mid
-    matRef.current.uniforms.uRms.value  = audioData.rms
+    matRef.current.uniforms.uBass.value = ad.bass
+    matRef.current.uniforms.uMid.value  = ad.mid
+    matRef.current.uniforms.uRms.value  = ad.rms
   })
 
   return (

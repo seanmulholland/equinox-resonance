@@ -13,16 +13,15 @@ import { metatronsCube } from '../geometry/sacredGeometry'
 import type { AudioData } from '../types'
 
 interface Props {
+  audioDataRef: React.RefObject<AudioData>
   landmarks: number[][] | null
-  audioData: AudioData
   mode: 'constellation' | 'fallback'
 }
 
 const LANDMARK_COUNT = 468
 const FALLBACK_COUNT = 2000
 
-export function AvatarConstellation({ landmarks, audioData, mode }: Props) {
-  const pointsRef = useRef<THREE.Points>(null)
+export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
   const matRef    = useRef<THREE.ShaderMaterial>(null)
   const geoRef    = useRef<THREE.BufferGeometry>(null)
   const haloRef   = useRef<THREE.Mesh>(null)
@@ -30,10 +29,9 @@ export function AvatarConstellation({ landmarks, audioData, mode }: Props) {
 
   const livePositions = useRef(new Float32Array(LANDMARK_COUNT * 3))
   const blendT    = useRef(0)
-  const modeBlend = useRef(0) // 0=fallback, 1=constellation
+  const modeBlend = useRef(0)
   const prevMode  = useRef(mode)
 
-  // Metatron's Cube in horizon plane (XZ) — looks like a mandala from above
   const fallbackPositions = useMemo(() => {
     const raw = metatronsCube(FALLBACK_COUNT)
     const out = new Float32Array(raw.length)
@@ -63,15 +61,12 @@ export function AvatarConstellation({ landmarks, audioData, mode }: Props) {
     uConstellationMode:  { value: 0.0 },
   }), [])
 
-  // Smooth blend when mode changes
   useEffect(() => {
     if (prevMode.current !== mode) {
       const target = mode === 'constellation' ? 1 : 0
       const tween = { t: modeBlend.current }
       gsap.to(tween, {
-        t: target,
-        duration: 2.0,
-        ease: 'power2.inOut',
+        t: target, duration: 2.0, ease: 'power2.inOut',
         onUpdate: () => { modeBlend.current = tween.t },
       })
       blendT.current = 0
@@ -86,23 +81,26 @@ export function AvatarConstellation({ landmarks, audioData, mode }: Props) {
   useFrame(({ clock }) => {
     if (!matRef.current || !geoRef.current) return
 
-    const t = clock.getElapsedTime()
+    const ad = audioDataRef.current
+    const t  = clock.getElapsedTime()
+
     matRef.current.uniforms.uTime.value = t
-    matRef.current.uniforms.uBass.value = audioData.bass
-    matRef.current.uniforms.uMid.value  = audioData.mid
-    matRef.current.uniforms.uRms.value  = audioData.rms
+    matRef.current.uniforms.uBass.value = ad.bass
+    matRef.current.uniforms.uMid.value  = ad.mid
+    matRef.current.uniforms.uRms.value  = ad.rms
     matRef.current.uniforms.uConstellationMode.value = modeBlend.current
 
-    // Halo: pink/magenta ring, pulses with bass, only in constellation mode
+    // Halo: pulses with bass, visible only in constellation mode
     if (haloRef.current && haloMatRef.current) {
-      const haloScale = 1.0 + audioData.bass * 0.15
+      const haloScale = 1.0 + ad.bass * 0.15
       haloRef.current.scale.setScalar(haloScale)
       haloRef.current.rotation.z = t * 0.05
-      ;(haloMatRef.current as any).opacity = modeBlend.current * (0.5 + audioData.bass * 0.3)
+      ;(haloMatRef.current as any).opacity = modeBlend.current * (0.5 + ad.bass * 0.3)
     }
 
     const posAttr = geoRef.current.attributes.position as THREE.BufferAttribute
 
+    // Map live face landmarks into scene space
     if (landmarks && landmarks.length === LANDMARK_COUNT) {
       for (let i = 0; i < LANDMARK_COUNT; i++) {
         const [lx, ly, lz] = landmarks[i]
@@ -121,8 +119,8 @@ export function AvatarConstellation({ landmarks, audioData, mode }: Props) {
       const fx = fallbackPositions[i * 3 + 0]
       const fy = fallbackPositions[i * 3 + 1]
       const fz = fallbackPositions[i * 3 + 2]
-      const rx  = fx * cosR - fz * sinR
-      const rz  = fx * sinR + fz * cosR
+      const rx = fx * cosR - fz * sinR
+      const rz = fx * sinR + fz * cosR
 
       if (mode === 'constellation' && i < LANDMARK_COUNT) {
         posAttr.array[i * 3 + 0] = THREE.MathUtils.lerp(rx, livePositions.current[i * 3 + 0], blend)
@@ -145,7 +143,7 @@ export function AvatarConstellation({ landmarks, audioData, mode }: Props) {
 
   return (
     <group>
-      {/* Pink/magenta halo arch behind the face — matches reference */}
+      {/* Pink/magenta halo arch behind the face */}
       <mesh ref={haloRef} position={[0, 0.4, -0.5]}>
         <ringGeometry args={[2.1, 2.55, 80]} />
         <meshBasicMaterial
@@ -159,7 +157,7 @@ export function AvatarConstellation({ landmarks, audioData, mode }: Props) {
         />
       </mesh>
 
-      {/* Inner glow disc — softer center bloom */}
+      {/* Inner glow disc */}
       <mesh position={[0, 0.4, -0.6]}>
         <circleGeometry args={[2.1, 64]} />
         <meshBasicMaterial
@@ -171,8 +169,8 @@ export function AvatarConstellation({ landmarks, audioData, mode }: Props) {
         />
       </mesh>
 
-      {/* Face particles */}
-      <points ref={pointsRef}>
+      {/* Face / sacred geometry particles */}
+      <points>
         <bufferGeometry ref={geoRef}>
           <bufferAttribute attach="attributes-position" args={[initPositions, 3]} />
           <bufferAttribute attach="attributes-aScale"   args={[scales, 1]} />
