@@ -69,6 +69,31 @@ export default function App() {
     <div style={{ position: 'fixed', inset: 0, background: '#02040f' }}>
       <div ref={sceneWrap} style={{ position: 'absolute', inset: 0, opacity: 0, zIndex: 1 }}>
         <Scene audioDataRef={audioDataRef} landmarks={landmarks} appState={appState} />
+        {/* Vignette overlay — sits ON TOP of canvas + bloom, masks edge bleed */}
+        {/* Radial gradient: transparent center → sunset-colored edges */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: `radial-gradient(
+            ellipse 70% 60% at 50% 50%,
+            transparent 0%,
+            transparent 30%,
+            rgba(5, 9, 31, 0.3) 50%,
+            rgba(5, 9, 31, 0.6) 65%,
+            rgba(5, 9, 31, 0.85) 80%,
+            rgba(2, 4, 15, 0.95) 100%
+          )`,
+        }} />
+        {/* Top-to-bottom gradient to reinforce dark bottom / lighter top */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: `linear-gradient(
+            to bottom,
+            rgba(5, 9, 31, 0.0) 0%,
+            rgba(5, 9, 31, 0.0) 40%,
+            rgba(5, 9, 31, 0.4) 70%,
+            rgba(2, 4, 15, 0.7) 100%
+          )`,
+        }} />
       </div>
 
       {/* Video element for MediaPipe — must be in DOM and renderable (not display:none) */}

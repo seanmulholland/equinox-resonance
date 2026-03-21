@@ -81,3 +81,53 @@ export function torusKnot(count = 3000, p = 3, q = 2): Float32Array {
 
   return new Float32Array(positions)
 }
+
+/** Lissajous knot — symmetrical 3D curve, always looks balanced */
+export function lissajousKnot(count = 3000, a = 2, b = 3, c = 5): Float32Array {
+  const positions: number[] = []
+  for (let i = 0; i < count; i++) {
+    const t = (i / count) * TAU
+    const x = Math.sin(a * t + Math.PI / 2)
+    const y = Math.sin(b * t)
+    const z = Math.sin(c * t) * 0.5
+    positions.push(x, y, z)
+  }
+  return new Float32Array(positions)
+}
+
+/** Rose curve — symmetrical petal pattern, flat on XY plane */
+export function roseCurve(count = 3000, petals = 5): Float32Array {
+  const positions: number[] = []
+  // k = petals for odd petals, petals/2 for even
+  const k = petals
+  for (let i = 0; i < count; i++) {
+    const t = (i / count) * TAU * 2  // 2 loops to fill all petals
+    const r = 1.5 * Math.cos(k * t)
+    const x = r * Math.cos(t)
+    const y = r * Math.sin(t)
+    const z = Math.sin(t * k * 0.5) * 0.2
+    positions.push(x, y, z)
+  }
+  return new Float32Array(positions)
+}
+
+/**
+ * Pick a random sacred geometry shape. Returns a normalized Float32Array.
+ * All shapes are inherently symmetrical.
+ */
+export function randomSacredGeometry(count: number): Float32Array {
+  const shapes = [
+    () => metatronsCube(count),
+    () => fermatSpiral(count),
+    () => torusKnot(count, 3, 2),
+    () => torusKnot(count, 2, 3),
+    () => torusKnot(count, 5, 3),
+    () => lissajousKnot(count, 2, 3, 5),
+    () => lissajousKnot(count, 3, 4, 7),
+    () => roseCurve(count, 5),
+    () => roseCurve(count, 7),
+    () => roseCurve(count, 3),
+  ]
+  const idx = Math.floor(Math.random() * shapes.length)
+  return shapes[idx]()
+}

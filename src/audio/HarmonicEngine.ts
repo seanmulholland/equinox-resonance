@@ -105,7 +105,7 @@ export class HarmonicEngine {
       // 1-2 octaves lower: sub at BASE/4 (108Hz), harmonics at BASE/2 (216Hz)
       osc.frequency.value = i === 0 ? BASE / 4 : BASE / 2
       osc.detune.value = detune
-      g.gain.value = i === 0 ? 0.06 : 0.025  // half volume — background drone
+      g.gain.value = i === 0 ? 0.072 : 0.03  // background drone, +20%
       osc.connect(g)
       g.connect(this.dryGain!)
       osc.start()

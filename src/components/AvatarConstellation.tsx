@@ -4,12 +4,12 @@
  * Fallback: Metatron's Cube flat on horizon, rotating.
  */
 
-import { useRef, useEffect, useMemo } from 'react'
+import { useRef, useEffect, useMemo, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { gsap } from 'gsap'
 import { particlesVert, particlesFrag } from '../shaders'
-import { metatronsCube } from '../geometry/sacredGeometry'
+import { randomSacredGeometry } from '../geometry/sacredGeometry'
 import type { AudioData } from '../types'
 
 interface Props {
@@ -19,7 +19,7 @@ interface Props {
 }
 
 const LANDMARK_COUNT = 468
-const FALLBACK_COUNT = 800
+const FALLBACK_COUNT = 2000
 
 export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
   const matRef    = useRef<THREE.ShaderMaterial>(null)
@@ -31,9 +31,17 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
   const blendT    = useRef(0)
   const modeBlend = useRef(0)
   const prevMode  = useRef(mode)
+  const shapeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const fallbackPositions = useMemo(() => {
-    const raw = metatronsCube(FALLBACK_COUNT)
+  // Current and next shape for crossfading
+  const fallbackA = useRef(generateFallback())
+  const fallbackB = useRef(generateFallback())
+  const shapeFade = useRef(0) // 0 = show A, 1 = show B
+  const [, forceUpdate] = useState(0)
+
+  // Generate a new random sacred geometry shape, scaled for the scene
+  function generateFallback(): Float32Array {
+    const raw = randomSacredGeometry(FALLBACK_COUNT)
     const out = new Float32Array(raw.length)
     for (let i = 0; i < raw.length; i += 3) {
       out[i + 0] = raw[i + 0] * 2.5
@@ -41,6 +49,23 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
       out[i + 2] = raw[i + 1] * 2.5
     }
     return out
+  }
+
+  // Periodically morph to a new shape every ~20s
+  useEffect(() => {
+    const cycle = () => {
+      // Generate new shape into the "off" buffer, then crossfade
+      if (shapeFade.current < 0.5) {
+        fallbackB.current = generateFallback()
+        gsap.to(shapeFade, { current: 1, duration: 3, ease: 'power2.inOut' })
+      } else {
+        fallbackA.current = generateFallback()
+        gsap.to(shapeFade, { current: 0, duration: 3, ease: 'power2.inOut' })
+      }
+      shapeTimer.current = setTimeout(cycle, 4000)
+    }
+    shapeTimer.current = setTimeout(cycle, 4000)
+    return () => { if (shapeTimer.current) clearTimeout(shapeTimer.current) }
   }, [])
 
   const uniformCount = Math.max(LANDMARK_COUNT, FALLBACK_COUNT)
@@ -95,7 +120,7 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
       const haloScale = 1.0 + ad.bass * 0.15
       haloRef.current.scale.setScalar(haloScale)
       haloRef.current.rotation.z = t * 0.05
-      ;(haloMatRef.current as any).opacity = modeBlend.current * (0.5 + ad.bass * 0.3)
+      ;(haloMatRef.current as any).opacity = modeBlend.current * (0.25 + ad.bass * 0.15)
     }
 
     const posAttr = geoRef.current.attributes.position as THREE.BufferAttribute
@@ -124,8 +149,8 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
       // Use the larger of X/Y span to maintain aspect ratio
       const span = Math.max(spanX, spanY)
 
-      // Target size: ±4 Y (fills ~65vh at cam z=7, fov=65)
-      const TARGET_HALF = 4.0
+      // Target size: ±2.8 Y (fills ~70vh at cam z=7, fov=65)
+      const TARGET_HALF = 2.8
       const scale = (TARGET_HALF * 2) / span
 
       for (let i = 0; i < LANDMARK_COUNT; i++) {
@@ -139,12 +164,21 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
     const blend = blendT.current
     const rot   = t * 0.18
     const cosR  = Math.cos(rot), sinR = Math.sin(rot)
-    const count = Math.min(uniformCount, fallbackPositions.length / 3)
+    const count = uniformCount
+    const sf = shapeFade.current
+    const shapeA = fallbackA.current
+    const shapeB = fallbackB.current
 
     for (let i = 0; i < count; i++) {
-      const fx = fallbackPositions[i * 3 + 0]
-      const fy = fallbackPositions[i * 3 + 1]
-      const fz = fallbackPositions[i * 3 + 2]
+      const i3 = i * 3
+      // Blend between two shape buffers for smooth morphing
+      const aLen = shapeA.length / 3
+      const bLen = shapeB.length / 3
+      const ai = i % aLen
+      const bi = i % bLen
+      const fx = shapeA[ai * 3 + 0] * (1 - sf) + shapeB[bi * 3 + 0] * sf
+      const fy = shapeA[ai * 3 + 1] * (1 - sf) + shapeB[bi * 3 + 1] * sf
+      const fz = shapeA[ai * 3 + 2] * (1 - sf) + shapeB[bi * 3 + 2] * sf
       const rx = fx * cosR - fz * sinR
       const rz = fx * sinR + fz * cosR
 
@@ -163,8 +197,8 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
   })
 
   const initPositions = useMemo(
-    () => fallbackPositions.slice(0, uniformCount * 3),
-    [fallbackPositions, uniformCount]
+    () => fallbackA.current.slice(0, uniformCount * 3),
+    [uniformCount]
   )
 
   return (
@@ -179,18 +213,6 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
           opacity={0}
           depthWrite={false}
           side={THREE.DoubleSide}
-          blending={THREE.AdditiveBlending}
-        />
-      </mesh>
-
-      {/* Inner glow disc */}
-      <mesh position={[0, 0.6, -1.1]}>
-        <circleGeometry args={[4.2, 64]} />
-        <meshBasicMaterial
-          color={new THREE.Color(0x660033)}
-          transparent
-          opacity={0.08}
-          depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
       </mesh>

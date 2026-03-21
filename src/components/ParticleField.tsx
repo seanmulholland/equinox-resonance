@@ -51,7 +51,7 @@ export function ParticleField({ audioDataRef, positions }: Props) {
         uniforms={uniforms}
         transparent
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={THREE.NormalBlending}
       />
     </points>
   )

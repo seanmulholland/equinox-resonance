@@ -99,9 +99,9 @@ void main() {
   float baseT = fract(uTime * 0.04 + length(position) * 0.06 + uMid * 0.2);
   vec3 sunsetCol = sunsetPalette(baseT);
   vec3 constCol  = constellationPalette(baseT);
-  vColor = mix(sunsetCol, constCol, uConstellationMode);
+  vColor = mix(sunsetCol * 0.4, constCol, uConstellationMode);
 
-  vAlpha = mix(0.55 + uRms * 0.35, 0.85 + uRms * 0.15, uConstellationMode);
+  vAlpha = mix(0.2 + uRms * 0.15, 0.85 + uRms * 0.15, uConstellationMode);
   vMode  = uConstellationMode;
 
   vec4 mvPos = modelViewMatrix * vec4(displaced, 1.0);
