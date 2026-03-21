@@ -20,10 +20,12 @@ export function GhostUI({ appState, onReturnToLanding }: Props) {
   const [visible, setVisible] = useState(false)
 
   const show = useCallback(() => {
+    if (!uiRef.current) return
     setVisible(true)
     gsap.to(uiRef.current, { opacity: 1, duration: 0.4 })
     if (hideTimer.current) clearTimeout(hideTimer.current)
     hideTimer.current = setTimeout(() => {
+      if (!uiRef.current) return
       gsap.to(uiRef.current, { opacity: 0, duration: 0.8, onComplete: () => setVisible(false) })
     }, 3000)
   }, [])

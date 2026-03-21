@@ -1,17 +1,35 @@
 /**
  * useFaceMesh — MediaPipe Face Mesh integration.
  *
- * Accepts the SAME camera MediaStream that was granted in the PermissionModal
- * so we don't create a competing second stream (which can silently fail).
- * Models served locally from /public/mediapipe/.
+ * @mediapipe/face_mesh is a Closure-compiled IIFE that registers to `this`.
+ * Vite's ESM interop can't extract the constructor from it.
+ * We load face_mesh.js as a script tag so it attaches FaceMesh to `window`.
  */
 
 import { useEffect, useRef, useState } from 'react'
+
+declare global {
+  interface Window { FaceMesh: any }
+}
 
 export interface FaceMeshHook {
   landmarks: number[][] | null
   videoRef: React.RefObject<HTMLVideoElement | null>
   ready: boolean
+}
+
+function loadScript(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      resolve()
+      return
+    }
+    const s = document.createElement('script')
+    s.src = src
+    s.onload = () => resolve()
+    s.onerror = reject
+    document.head.appendChild(s)
+  })
 }
 
 export function useFaceMesh(camStream: MediaStream | null): FaceMeshHook {
@@ -25,16 +43,16 @@ export function useFaceMesh(camStream: MediaStream | null): FaceMeshHook {
     let active = true
 
     async function setup() {
-      // CJS module — dynamic import puts exports on .default in Vite
-      const mod = await import('@mediapipe/face_mesh')
-      const FaceMesh = (mod as any).FaceMesh ?? (mod as any).default?.FaceMesh
-      if (!FaceMesh) {
-        console.error('useFaceMesh: FaceMesh constructor not found in module', Object.keys(mod))
+      // Load face_mesh.js as a script — it attaches FaceMesh to window
+      await loadScript('/mediapipe/face_mesh.js')
+
+      if (!active) return
+      if (!window.FaceMesh) {
+        console.error('useFaceMesh: window.FaceMesh not found after script load')
         return
       }
-      if (!active) return
 
-      const faceMesh = new FaceMesh({
+      const faceMesh = new window.FaceMesh({
         locateFile: (file: string) => `/mediapipe/${file}`,
       })
 
@@ -57,32 +75,30 @@ export function useFaceMesh(camStream: MediaStream | null): FaceMeshHook {
 
       const video = videoRef.current
       if (!video) {
-        console.warn('useFaceMesh: no video element ref')
+        console.warn('useFaceMesh: no video element')
         return
       }
 
       video.srcObject = camStream
-      video.onloadedmetadata = async () => {
-        try {
-          await video.play()
-        } catch (e) {
-          console.warn('useFaceMesh: video.play() failed', e)
-          return
-        }
-        if (!active) return
-        setReady(true)
+      try {
+        await video.play()
+      } catch (e) {
+        console.warn('useFaceMesh: video.play() failed', e)
+        return
+      }
+      if (!active) return
+      setReady(true)
 
-        // Async inference loop — one send at a time, ~30fps
-        while (active) {
-          if (video.readyState >= 2 && !video.paused) {
-            try {
-              await faceMesh.send({ image: video })
-            } catch {
-              // suppress per-frame errors (e.g. tab hidden)
-            }
+      // Async inference loop — one send at a time, ~30fps
+      while (active) {
+        if (video.readyState >= 2 && !video.paused) {
+          try {
+            await faceMesh.send({ image: video })
+          } catch {
+            // suppress per-frame errors (tab hidden, etc.)
           }
-          await new Promise(r => setTimeout(r, 33))
         }
+        await new Promise(r => setTimeout(r, 33))
       }
     }
 
@@ -92,7 +108,6 @@ export function useFaceMesh(camStream: MediaStream | null): FaceMeshHook {
       active = false
       setLandmarks(null)
       setReady(false)
-      // Don't stop the stream here — App owns its lifecycle
     }
   }, [camStream])
 
