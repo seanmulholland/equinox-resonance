@@ -101,12 +101,15 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
     const posAttr = geoRef.current.attributes.position as THREE.BufferAttribute
 
     // Map live face landmarks into scene space
+    // MediaPipe: x,y are 0–1 (UV), z is relative depth (negative = closer)
+    // Scale to fill ~65vh: camera at z=7, fov=65 → visible height ~8.6 units
+    // 65% of that ≈ 5.6 units → Y range ±2.8 → scale factor ~8
     if (landmarks && landmarks.length === LANDMARK_COUNT) {
       for (let i = 0; i < LANDMARK_COUNT; i++) {
         const [lx, ly, lz] = landmarks[i]
-        livePositions.current[i * 3 + 0] = (lx - 0.5) * 5
-        livePositions.current[i * 3 + 1] = -(ly - 0.5) * 3.8
-        livePositions.current[i * 3 + 2] = (lz ?? 0) * 2
+        livePositions.current[i * 3 + 0] = (lx - 0.5) * 10     // X: wide, ±5
+        livePositions.current[i * 3 + 1] = -(ly - 0.5) * 8     // Y: tall, fills ~65vh
+        livePositions.current[i * 3 + 2] = -(lz ?? 0) * 4      // Z: NEGATE to fix concavity
       }
     }
 
@@ -143,9 +146,9 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
 
   return (
     <group>
-      {/* Pink/magenta halo arch behind the face */}
-      <mesh ref={haloRef} position={[0, 0.4, -0.5]}>
-        <ringGeometry args={[2.1, 2.55, 80]} />
+      {/* Pink/magenta halo arch behind the face — scaled to match larger face */}
+      <mesh ref={haloRef} position={[0, 0.6, -1.0]}>
+        <ringGeometry args={[4.2, 5.0, 80]} />
         <meshBasicMaterial
           ref={haloMatRef}
           color={new THREE.Color(0xff44cc)}
@@ -158,8 +161,8 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
       </mesh>
 
       {/* Inner glow disc */}
-      <mesh position={[0, 0.4, -0.6]}>
-        <circleGeometry args={[2.1, 64]} />
+      <mesh position={[0, 0.6, -1.1]}>
+        <circleGeometry args={[4.2, 64]} />
         <meshBasicMaterial
           color={new THREE.Color(0x660033)}
           transparent

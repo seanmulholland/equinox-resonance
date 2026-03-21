@@ -37,24 +37,27 @@ function SceneInner({ audioDataRef, landmarks, appState }: Props) {
     <>
       <FractalBackground audioDataRef={audioDataRef} />
       <ParticleField     audioDataRef={audioDataRef} positions={bgScaled} />
-      <group position={[0, -0.3, 0]}>
+      <group position={[0, 0, 0]}>
         <AvatarConstellation
           audioDataRef={audioDataRef}
           landmarks={landmarks}
           mode={mode}
         />
       </group>
+      {/* Orbit: ±60° azimuth (120° total), tight polar, no pan/zoom */}
       <OrbitControls
-        target={[0, -0.3, 0]}
+        target={[0, 0, 0]}
         enablePan={false}
         enableZoom={false}
         autoRotate={appState !== 'constellation'}
-        autoRotateSpeed={0.25}
-        rotateSpeed={0.4}
+        autoRotateSpeed={0.2}
+        rotateSpeed={0.35}
         enableDamping
-        dampingFactor={0.05}
-        minPolarAngle={Math.PI * 0.3}
+        dampingFactor={0.06}
+        minPolarAngle={Math.PI * 0.35}
         maxPolarAngle={Math.PI * 0.65}
+        minAzimuthAngle={-Math.PI / 3}
+        maxAzimuthAngle={Math.PI / 3}
       />
       <EffectComposer>
         <Bloom intensity={2.2} luminanceThreshold={0.1} luminanceSmoothing={0.92} mipmapBlur />

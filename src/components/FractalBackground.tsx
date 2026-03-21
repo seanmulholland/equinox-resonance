@@ -1,3 +1,9 @@
+/**
+ * FractalBackground — always fills the viewport like an iOS live wallpaper.
+ * Parented to the camera so it never shows edges during orbit.
+ * Subtle parallax shift from audio gives it life.
+ */
+
 import { useRef, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -9,8 +15,9 @@ interface Props {
 }
 
 export function FractalBackground({ audioDataRef }: Props) {
-  const matRef = useRef<THREE.ShaderMaterial>(null)
-  const { viewport } = useThree()
+  const matRef  = useRef<THREE.ShaderMaterial>(null)
+  const meshRef = useRef<THREE.Mesh>(null)
+  const { camera } = useThree()
 
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
@@ -20,20 +27,25 @@ export function FractalBackground({ audioDataRef }: Props) {
   }), [])
 
   useFrame(({ clock }) => {
-    if (!matRef.current) return
+    if (!matRef.current || !meshRef.current) return
     const ad = audioDataRef.current
     matRef.current.uniforms.uTime.value = clock.getElapsedTime()
     matRef.current.uniforms.uBass.value = ad.bass
     matRef.current.uniforms.uMid.value  = ad.mid
     matRef.current.uniforms.uRms.value  = ad.rms
+
+    // Lock to camera — always directly in front, far enough to be behind everything
+    meshRef.current.position.copy(camera.position)
+    meshRef.current.quaternion.copy(camera.quaternion)
+    // Push it forward (into the screen) along the camera's look direction
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion)
+    meshRef.current.position.addScaledVector(forward, 50)
   })
 
-  const w = viewport.width  * 4
-  const h = viewport.height * 4
-
+  // Oversized plane — covers any FOV generously
   return (
-    <mesh position={[0, 0, -12]} renderOrder={-1}>
-      <planeGeometry args={[w, h]} />
+    <mesh ref={meshRef} renderOrder={-1}>
+      <planeGeometry args={[200, 120]} />
       <shaderMaterial
         ref={matRef}
         vertexShader={backgroundVert}
