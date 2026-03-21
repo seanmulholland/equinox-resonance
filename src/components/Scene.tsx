@@ -64,6 +64,16 @@ function CameraOrbit({ enabled }: { enabled: boolean }) {
   return null
 }
 
+function ClearColorSetup() {
+  const { gl } = useThree()
+  useEffect(() => {
+    // White clear color with 0 alpha — prevents dark edges on particles
+    // (default alpha:true clears to black, causing dark halos on alpha-blended edges)
+    gl.setClearColor(0xffffff, 0)
+  }, [gl])
+  return null
+}
+
 function SceneInner({ audioDataRef, landmarks, appState }: Props) {
   const [dragging, setDragging] = useState(false)
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -95,6 +105,7 @@ function SceneInner({ audioDataRef, landmarks, appState }: Props) {
 
   return (
     <>
+      <ClearColorSetup />
       <FractalBackground audioDataRef={audioDataRef} />
       <group position={[0, 0, 0]}>
         <AvatarConstellation
@@ -120,7 +131,7 @@ function SceneInner({ audioDataRef, landmarks, appState }: Props) {
       <CameraOrbit enabled={!dragging} />
       <EffectComposer>
         <Bloom intensity={0.08} luminanceThreshold={0.85} luminanceSmoothing={0.5} mipmapBlur />
-        <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+        <ToneMapping mode={ToneMappingMode.LINEAR} />
       </EffectComposer>
     </>
   )

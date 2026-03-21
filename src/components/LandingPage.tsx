@@ -28,11 +28,6 @@ export function LandingPage({ onEnter }: Props) {
 
   return (
     <div ref={containerRef} style={styles.container}>
-      {/* Warm cream base */}
-      <div style={styles.sky} />
-
-      {/* Graph paper grid */}
-      <div style={styles.grid} />
 
       {/* Small decorative colored squares — scattered like the album art border */}
       <div style={styles.decorRow}>
@@ -70,8 +65,6 @@ export function LandingPage({ onEnter }: Props) {
         <p style={styles.subtitle}>a harmonic mirror for the turning of the year</p>
       </div>
 
-      {/* Vignette */}
-      <div style={styles.vignette} />
     </div>
   )
 }
@@ -86,21 +79,6 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     overflow: 'hidden',
     userSelect: 'none',
-  },
-  sky: {
-    position: 'absolute',
-    inset: 0,
-    background: '#F5F0E1',
-  },
-  grid: {
-    position: 'absolute',
-    inset: 0,
-    opacity: 0.12,
-    backgroundImage: `
-      linear-gradient(rgba(180,160,120,1) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(180,160,120,1) 1px, transparent 1px)`,
-    backgroundSize: '40px 40px',
-    pointerEvents: 'none',
   },
   decorRow: {
     position: 'absolute',
@@ -181,7 +159,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 'clamp(0.8rem, 1.3vw, 1rem)',
     letterSpacing: '0.25em',
     color: '#6B5B3A',
-    fontFamily: "'Amarante', Georgia, serif",
+    fontFamily: "'Coiny', Georgia, serif",
     textShadow: '0 0 12px rgba(212,168,67,0.4)',
   },
   titleWrap: {
@@ -192,11 +170,11 @@ const styles: Record<string, React.CSSProperties> = {
   },
   title: {
     fontSize: 'clamp(2rem, 5vw, 4rem)',
-    fontWeight: 200,
+    fontWeight: 400,
     letterSpacing: '0.25em',
     color: '#4A3A1E',
     textShadow: '0 0 20px rgba(212,168,67,0.35)',
-    fontFamily: "'Amarante', Georgia, serif",
+    fontFamily: "'Coiny', Georgia, serif",
   },
   subtitle: {
     marginTop: 12,
@@ -204,12 +182,6 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.3em',
     color: '#8B7B5A',
     textTransform: 'lowercase',
-    fontFamily: "'Amarante', Georgia, serif",
-  },
-  vignette: {
-    position: 'absolute',
-    inset: 0,
-    pointerEvents: 'none',
-    background: 'radial-gradient(ellipse at center, transparent 40%, rgba(180,150,100,0.15) 70%, rgba(120,90,50,0.25) 100%)',
+    fontFamily: "'Coiny', Georgia, serif",
   },
 }
