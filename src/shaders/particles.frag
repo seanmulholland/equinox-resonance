@@ -17,10 +17,10 @@ void main() {
   float coreSharpness = mix(1.4, 1.0, vMode);
   float alpha = pow(1.0 - smoothstep(0.0, 0.5, dist), coreSharpness);
 
-  // Constellation: bright white/cyan core with tight fast-falloff halo
-  vec3 core  = mix(vColor, vec3(0.95, 1.0, 1.0), vMode * smoothstep(0.3, 0.0, dist));
-  float bloom = exp(-dist * 8.0) * vMode;  // steeper falloff — glow stays close to particle
-  vec3 color = core * (1.0 + bloom * 0.8 + (1.0 - dist * 2.0) * mix(0.3, 0.5, vMode));
+  // Constellation: warm gold/cream core
+  vec3 core  = mix(vColor, vec3(0.95, 0.88, 0.65), vMode * smoothstep(0.3, 0.0, dist));
+  float bloom = exp(-dist * 8.0) * vMode;
+  vec3 color = core * (1.0 + bloom * 0.6 + (1.0 - dist * 2.0) * mix(0.3, 0.4, vMode));
 
   gl_FragColor = vec4(color, alpha * vAlpha * uAlpha);
 }

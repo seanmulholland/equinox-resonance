@@ -70,19 +70,45 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
     return () => { if (shapeTimer.current) clearTimeout(shapeTimer.current) }
   }, [])
 
-  // Capture ring vertex angles + inner/outer classification on mount
+  // Capture ring vertex angles + inner/outer classification + rainbow vertex colors on mount
   useEffect(() => {
     if (!haloGeoRef.current) return
     const pos = haloGeoRef.current.attributes.position as THREE.BufferAttribute
     const count = pos.count
     const angles = new Float32Array(count)
     const ts = new Float32Array(count)
+    const colors = new Float32Array(count * 3)
+
+    // Rainbow band colors matching the album art: red → orange → yellow → green → blue → indigo → violet
+    const rainbowStops = [
+      [0.83, 0.29, 0.23],  // red    #D44A3A
+      [0.77, 0.45, 0.16],  // orange #C47228
+      [0.83, 0.66, 0.26],  // mustard #D4A843
+      [0.76, 0.82, 0.35],  // yellow-green
+      [0.29, 0.48, 0.24],  // olive   #4A7A3D
+      [0.36, 0.56, 0.76],  // sky blue #5B8EC2
+      [0.35, 0.32, 0.60],  // indigo
+    ]
+
     for (let i = 0; i < count; i++) {
       const x = pos.getX(i), y = pos.getY(i)
       angles[i] = Math.atan2(y, x)
       const r = Math.sqrt(x * x + y * y)
       ts[i] = Math.max(0, Math.min(1, (r - RING_INNER) / (RING_OUTER - RING_INNER)))
+
+      // Map angle to rainbow
+      const t = (angles[i] + Math.PI) / (2 * Math.PI) // 0-1
+      const idx = t * (rainbowStops.length - 1)
+      const lo = Math.floor(idx)
+      const hi = Math.min(lo + 1, rainbowStops.length - 1)
+      const frac = idx - lo
+      colors[i * 3 + 0] = rainbowStops[lo][0] * (1 - frac) + rainbowStops[hi][0] * frac
+      colors[i * 3 + 1] = rainbowStops[lo][1] * (1 - frac) + rainbowStops[hi][1] * frac
+      colors[i * 3 + 2] = rainbowStops[lo][2] * (1 - frac) + rainbowStops[hi][2] * frac
     }
+
+    // Attach vertex colors to geometry
+    haloGeoRef.current.setAttribute('color', new THREE.BufferAttribute(colors, 3))
     haloMeta.current = { angles, ts }
   }, [])
 
@@ -227,16 +253,15 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
 
   return (
     <group>
-      {/* Pink/magenta halo ring — frames the face, scales with audio */}
+      {/* Rainbow halo ring — retro album art aesthetic, frames the face */}
       <mesh ref={haloRef} position={[0, 0, 0]}>
         <ringGeometry ref={haloGeoRef} args={[2.8, 3.3, 80]} />
         <meshBasicMaterial
-          color={new THREE.Color(0xff44cc)}
+          vertexColors
           transparent
-          opacity={0.3}
+          opacity={0.7}
           depthWrite={false}
           side={THREE.DoubleSide}
-          blending={THREE.AdditiveBlending}
         />
       </mesh>
 
@@ -253,7 +278,7 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
           uniforms={shapeUniforms}
           transparent
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={THREE.NormalBlending}
         />
       </points>
 
@@ -270,7 +295,7 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
           uniforms={faceUniforms}
           transparent
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={THREE.NormalBlending}
         />
       </points>
     </group>

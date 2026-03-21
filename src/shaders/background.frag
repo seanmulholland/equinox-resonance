@@ -1,6 +1,6 @@
-// Effect layer — rendered on a black canvas with mix-blend-mode:screen.
-// Black pixels = transparent (screen blend passes CSS sunset through).
-// Coloured pixels (rings, fractal, spiral) lighten/tint the CSS sunset.
+// Effect layer — rendered on a white canvas with mix-blend-mode:multiply.
+// White pixels = transparent (multiply blend passes cream BG through).
+// Coloured pixels tint/darken the cream background — retro 70s warm palette.
 // Audio-reactive via bass/mid/rms/audioEnergy uniforms.
 
 uniform float uTime;
@@ -45,14 +45,19 @@ float fbm(vec2 p) {
   return v;
 }
 
-vec3 palette(float t, float phase) {
+// Retro 70s palette — mustard, burnt orange, olive, sky blue, warm red
+vec3 retroPalette(float t, float phase) {
   float p = fract(phase);
   float idx = floor(mod(phase, 4.0));
   vec3 a, b, c, d;
-  vec3 a0=vec3(.5,.3,.4); vec3 b0=vec3(.5,.4,.3); vec3 c0=vec3(.8,.6,.5); vec3 d0=vec3(.60,.40,.20);
-  vec3 a1=vec3(.1,.2,.5); vec3 b1=vec3(.4,.4,.4); vec3 c1=vec3(1.,.8,.6); vec3 d1=vec3(.00,.20,.50);
-  vec3 a2=vec3(.1,.4,.5); vec3 b2=vec3(.3,.4,.3); vec3 c2=vec3(.9,1.,.7); vec3 d2=vec3(.10,.60,.80);
-  vec3 a3=vec3(.4,.1,.5); vec3 b3=vec3(.4,.3,.4); vec3 c3=vec3(.7,.5,.9); vec3 d3=vec3(.80,.10,.40);
+  // Warm earthy tones
+  vec3 a0=vec3(.75,.60,.35); vec3 b0=vec3(.25,.20,.15); vec3 c0=vec3(.8,.5,.3); vec3 d0=vec3(.10,.30,.20);
+  // Orange/red push
+  vec3 a1=vec3(.70,.40,.30); vec3 b1=vec3(.30,.25,.15); vec3 c1=vec3(.9,.6,.4); vec3 d1=vec3(.00,.15,.30);
+  // Olive/green
+  vec3 a2=vec3(.45,.55,.35); vec3 b2=vec3(.20,.25,.20); vec3 c2=vec3(.7,.8,.5); vec3 d2=vec3(.20,.40,.10);
+  // Sky blue warm
+  vec3 a3=vec3(.50,.60,.70); vec3 b3=vec3(.20,.20,.25); vec3 c3=vec3(.6,.7,.9); vec3 d3=vec3(.30,.20,.10);
   if      (idx < 1.0) { a=mix(a0,a1,p); b=mix(b0,b1,p); c=mix(c0,c1,p); d=mix(d0,d1,p); }
   else if (idx < 2.0) { a=mix(a1,a2,p); b=mix(b1,b2,p); c=mix(c1,c2,p); d=mix(d1,d2,p); }
   else if (idx < 3.0) { a=mix(a2,a3,p); b=mix(b2,b3,p); c=mix(c2,c3,p); d=mix(d2,d3,p); }
@@ -69,28 +74,32 @@ void main() {
   float palPhase = uTime * 0.008 + audioPhaseShift;
   float colorT   = dist * 0.8 + uTime * 0.04 + uBass * 0.12 - uMid * 0.08;
 
-  // Black base — screen blend makes this transparent, CSS sunset shows through
-  vec3 effect = vec3(0.0);
+  // White base — multiply blend makes this transparent, cream BG shows through
+  vec3 effect = vec3(1.0);
 
-  // ── Emanating rings — boosted for screen-blend visibility ────────
+  // ── Emanating rings — warm retro tones ────────────────────────────
   float ringSpeed = 0.9 + uBass * 1.8 + uAudioEnergy * 0.5;
   float rings  = pow(sin(dist * 18.0 - uTime * ringSpeed) * 0.5 + 0.5, 6.0);
   float rings2 = pow(sin(dist * 30.0 - uTime * ringSpeed * 0.7 + uBass * 3.0) * 0.5 + 0.5, 10.0);
-  vec3  ringCol = palette(fract(colorT + 0.3 + uMid * 0.2), palPhase);
+  vec3  ringCol = retroPalette(fract(colorT + 0.3 + uMid * 0.2), palPhase);
   float ringBright = 0.35 + uBass * 0.8 + uRms * 0.4;
-  effect += rings  * ringCol * ringBright * 0.7;
-  effect += rings2 * ringCol * ringBright * 0.4;
+  // Multiply: subtract from white to tint
+  effect -= rings  * (1.0 - ringCol) * ringBright * 0.5;
+  effect -= rings2 * (1.0 - ringCol) * ringBright * 0.3;
 
   // ── Fractal noise tint ───────────────────────────────────────────
   float fractal = fbm(centered * 2.5 + uTime * 0.06) * 0.5 + 0.5;
-  vec3  fracCol = palette(fractal + uTime * 0.03 + uMid * 0.15, palPhase);
-  effect += fracCol * fractal * (0.10 + uMid * 0.12 + uAudioEnergy * 0.08);
+  vec3  fracCol = retroPalette(fractal + uTime * 0.03 + uMid * 0.15, palPhase);
+  effect -= (1.0 - fracCol) * fractal * (0.08 + uMid * 0.10 + uAudioEnergy * 0.06);
 
   // ── Spiral arms ──────────────────────────────────────────────────
   float angle  = atan(centered.y, centered.x);
   float spiral = pow(sin(angle * 3.0 + log(dist * 8.0 + 0.01) * 4.0 - uTime * 0.4) * 0.5 + 0.5, 5.0);
   spiral *= (1.0 - smoothstep(0.0, 0.55, dist));
-  effect += spiral * palette(fract(colorT + 0.6), palPhase) * (0.25 + uBass * 0.35);
+  effect -= spiral * (1.0 - retroPalette(fract(colorT + 0.6), palPhase)) * (0.20 + uBass * 0.30);
+
+  // Clamp to valid range
+  effect = clamp(effect, 0.0, 1.0);
 
   gl_FragColor = vec4(effect, 1.0);
 }

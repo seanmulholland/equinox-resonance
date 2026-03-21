@@ -119,7 +119,7 @@ function SceneInner({ audioDataRef, landmarks, appState }: Props) {
       />
       <CameraOrbit enabled={!dragging} />
       <EffectComposer>
-        <Bloom intensity={0.2} luminanceThreshold={0.75} luminanceSmoothing={0.6} mipmapBlur />
+        <Bloom intensity={0.08} luminanceThreshold={0.85} luminanceSmoothing={0.5} mipmapBlur />
         <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       </EffectComposer>
     </>
@@ -132,7 +132,7 @@ export function Scene({ audioDataRef, landmarks, appState }: Props) {
       camera={{ position: [0, 1.5, 7], fov: 65, near: 0.1, far: 200 }}
       gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
       dpr={[1, 1.5]}
-      style={{ background: '#000000' }}
+      style={{ background: '#FFFFFF' }}
     >
       <Suspense fallback={null}>
         <SceneInner audioDataRef={audioDataRef} landmarks={landmarks} appState={appState} />

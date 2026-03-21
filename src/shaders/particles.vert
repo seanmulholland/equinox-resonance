@@ -64,21 +64,21 @@ float snoise(vec3 v) {
 }
 
 // ── Palettes ─────────────────────────────────────────────────────────
-// Sunset palette — for background particles
+// Retro warm palette — mustard, orange, olive, warm red
 vec3 sunsetPalette(float t) {
-  vec3 a = vec3(.5,.4,.4);
-  vec3 b = vec3(.5,.4,.3);
-  vec3 c = vec3(.8,.6,.5);
-  vec3 d = vec3(.60,.40,.20);
+  vec3 a = vec3(.72,.55,.32);
+  vec3 b = vec3(.28,.22,.18);
+  vec3 c = vec3(.85,.55,.35);
+  vec3 d = vec3(.10,.25,.15);
   return a + b*cos(6.28318*(c*t+d));
 }
 
-// Constellation palette — cyan/teal/white like the reference image
+// Constellation palette — warm gold/cream for face dots
 vec3 constellationPalette(float t) {
-  vec3 a = vec3(.6,.9,1.0);
-  vec3 b = vec3(.4,.5,.5);
-  vec3 c = vec3(1.0,.8,.6);
-  vec3 d = vec3(.00,.15,.25);
+  vec3 a = vec3(.85,.70,.40);
+  vec3 b = vec3(.15,.20,.25);
+  vec3 c = vec3(.9,.7,.5);
+  vec3 d = vec3(.05,.10,.20);
   return a + b*cos(6.28318*(c*t+d));
 }
 

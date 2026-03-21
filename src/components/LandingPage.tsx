@@ -1,7 +1,7 @@
 /**
- * LandingPage — Pacific Sunset.
- * Full-screen CSS gradient (matches the shader aesthetic).
- * "Enter the Equinox" glows on the horizon.
+ * LandingPage — Retro 70s Album Art.
+ * Warm cream base with graph paper grid, rainbow circle portal.
+ * "Enter the Resonance" in the center.
  */
 
 import { useEffect, useRef } from 'react'
@@ -28,13 +28,28 @@ export function LandingPage({ onEnter }: Props) {
 
   return (
     <div ref={containerRef} style={styles.container}>
-      {/* Layered sunset gradient */}
+      {/* Warm cream base */}
       <div style={styles.sky} />
 
-      {/* Horizon glow line */}
-      <div style={styles.horizon} />
+      {/* Graph paper grid */}
+      <div style={styles.grid} />
 
-      {/* Sun orb — large, clickable as main CTA */}
+      {/* Small decorative colored squares — scattered like the album art border */}
+      <div style={styles.decorRow}>
+        {['#D44A3A','#C47228','#D4A843','#4A7A3D','#5B8EC2','#C45B28','#D44A3A'].map((c, i) => (
+          <div key={i} style={{ ...styles.decorSquare, background: c }} />
+        ))}
+      </div>
+
+      {/* Rainbow ring portal — the central focus */}
+      <div style={styles.rainbowRing}>
+        <div style={styles.innerCircle}>
+          {/* Sky blue center like the album art */}
+          <div style={styles.skyCenter} />
+        </div>
+      </div>
+
+      {/* Sun orb — centered in the portal, clickable */}
       <button
         ref={btnRef}
         onClick={onEnter}
@@ -56,8 +71,8 @@ export function LandingPage({ onEnter }: Props) {
         <p style={styles.subtitle}>a harmonic mirror for the turning of the year</p>
       </div>
 
-      {/* Shimmer stars */}
-      <div style={styles.stars} />
+      {/* Vignette */}
+      <div style={styles.vignette} />
     </div>
   )
 }
@@ -76,34 +91,84 @@ const styles: Record<string, React.CSSProperties> = {
   sky: {
     position: 'absolute',
     inset: 0,
+    background: '#F5F0E1',
+  },
+  grid: {
+    position: 'absolute',
+    inset: 0,
+    opacity: 0.12,
+    backgroundImage: `
+      linear-gradient(rgba(180,160,120,1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(180,160,120,1) 1px, transparent 1px)`,
+    backgroundSize: '40px 40px',
+    pointerEvents: 'none',
+  },
+  decorRow: {
+    position: 'absolute',
+    bottom: '6%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    display: 'flex',
+    gap: 16,
+    zIndex: 5,
+  },
+  decorSquare: {
+    width: 18,
+    height: 18,
+    borderRadius: 3,
+    opacity: 0.7,
+  },
+  rainbowRing: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 'min(70vw, 70vh)',
+    height: 'min(70vw, 70vh)',
+    borderRadius: '50%',
+    background: `conic-gradient(
+      from 0deg,
+      #D44A3A 0deg,
+      #C47228 51deg,
+      #D4A843 102deg,
+      #7AB355 153deg,
+      #4A7A3D 204deg,
+      #5B8EC2 255deg,
+      #5A5198 306deg,
+      #D44A3A 360deg
+    )`,
+    padding: 16,
+    zIndex: 1,
+    pointerEvents: 'none',
+  },
+  innerCircle: {
+    width: '100%',
+    height: '100%',
+    borderRadius: '50%',
+    overflow: 'hidden',
+    background: '#F5F0E1',
+    border: '3px solid rgba(180,160,120,0.3)',
+  },
+  skyCenter: {
+    width: '100%',
+    height: '100%',
     background: `linear-gradient(
       to top,
-      #05091f 0%,
-      #0d1f50 18%,
-      #14388c 32%,
-      #c05878 50%,
-      #f29a3e 62%,
-      #74a8db 80%,
-      #b4cbef 100%
+      #4A7A3D 0%,
+      #6BA352 15%,
+      #7CB8D4 40%,
+      #5B8EC2 70%,
+      #F5F0E1 100%
     )`,
-  },
-  horizon: {
-    position: 'absolute',
-    top: '52%',
-    left: 0,
-    right: 0,
-    height: '2px',
-    background: 'linear-gradient(to right, transparent, #f5c060, #fff8e1, #f5c060, transparent)',
-    opacity: 0.6,
-    boxShadow: '0 0 40px 12px rgba(245,192,96,0.4)',
+    opacity: 0.15,
   },
   sunButton: {
     position: 'absolute',
-    top: 'calc(52% - 100px)',
+    top: 'calc(50% - 80px)',
     left: '50%',
     transform: 'translateX(-50%)',
-    width: 200,
-    height: 200,
+    width: 160,
+    height: 160,
     border: 'none',
     background: 'transparent',
     cursor: 'pointer',
@@ -116,58 +181,46 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 0,
   },
   sunOrb: {
-    width: 180,
-    height: 180,
+    width: 120,
+    height: 120,
     borderRadius: '50%',
-    background: 'radial-gradient(circle, #fff8c0 0%, #f5c060 30%, #f5a623 55%, rgba(245,166,35,0.3) 80%, rgba(245,100,35,0) 100%)',
-    boxShadow: '0 0 80px 50px rgba(245,166,35,0.5), 0 0 160px 90px rgba(245,100,35,0.25), 0 0 250px 120px rgba(200,80,50,0.1)',
+    background: 'radial-gradient(circle, #FFE066 0%, #D4A843 35%, #C45B28 65%, rgba(196,91,40,0.2) 85%, transparent 100%)',
+    boxShadow: '0 0 60px 30px rgba(212,168,67,0.3), 0 0 100px 50px rgba(196,91,40,0.12)',
   },
   sunLabel: {
     marginTop: 16,
     fontSize: 'clamp(0.8rem, 1.3vw, 1rem)',
     letterSpacing: '0.25em',
-    color: 'rgba(255,248,200,0.8)',
+    color: '#6B5B3A',
     fontFamily: "'Amarante', Georgia, serif",
-    textShadow: '0 0 16px rgba(255,220,100,0.7)',
+    textShadow: '0 0 12px rgba(212,168,67,0.4)',
   },
   titleWrap: {
     position: 'relative',
     textAlign: 'center',
     zIndex: 2,
-    marginBottom: '42vh',
+    marginBottom: '38vh',
   },
   title: {
     fontSize: 'clamp(2rem, 5vw, 4rem)',
     fontWeight: 200,
     letterSpacing: '0.25em',
-    color: '#fff8e8',
-    textShadow: '0 0 30px rgba(255,220,100,0.6), 0 0 60px rgba(200,150,50,0.3)',
+    color: '#4A3A1E',
+    textShadow: '0 0 20px rgba(212,168,67,0.35)',
     fontFamily: "'Amarante', Georgia, serif",
   },
   subtitle: {
     marginTop: 12,
     fontSize: 'clamp(0.75rem, 1.5vw, 1rem)',
     letterSpacing: '0.3em',
-    color: 'rgba(255,240,200,0.7)',
+    color: '#8B7B5A',
     textTransform: 'lowercase',
     fontFamily: "'Amarante', Georgia, serif",
   },
-  stars: {
+  vignette: {
     position: 'absolute',
     inset: 0,
-    background: 'transparent',
-    backgroundImage: `
-      radial-gradient(1px 1px at 15% 12%, rgba(255,255,255,0.9) 0%, transparent 100%),
-      radial-gradient(1px 1px at 35% 8%, rgba(255,255,255,0.7) 0%, transparent 100%),
-      radial-gradient(1.5px 1.5px at 55% 5%, rgba(255,255,255,0.8) 0%, transparent 100%),
-      radial-gradient(1px 1px at 72% 10%, rgba(255,255,255,0.6) 0%, transparent 100%),
-      radial-gradient(1px 1px at 88% 7%, rgba(255,255,255,0.9) 0%, transparent 100%),
-      radial-gradient(1px 1px at 8% 22%, rgba(255,255,255,0.5) 0%, transparent 100%),
-      radial-gradient(1px 1px at 92% 18%, rgba(255,255,255,0.7) 0%, transparent 100%),
-      radial-gradient(1px 1px at 25% 3%, rgba(255,255,255,0.8) 0%, transparent 100%),
-      radial-gradient(1px 1px at 65% 2%, rgba(255,255,255,0.6) 0%, transparent 100%)
-    `,
-    opacity: 0.8,
     pointerEvents: 'none',
+    background: 'radial-gradient(ellipse at center, transparent 40%, rgba(180,150,100,0.15) 70%, rgba(120,90,50,0.25) 100%)',
   },
 }

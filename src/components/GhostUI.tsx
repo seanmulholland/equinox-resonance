@@ -84,7 +84,7 @@ export function GhostUI({ appState, onReturnToLanding, onToggleMute, isMuted }: 
               Grant camera access to see your face rendered as a constellation of light.
             </p>
             <p style={styles.modalText}>
-              Built by <a href="http://seanmulholland.com" target="_blank">Sean Mulholland</a> with sacred geometry, 432 Hz tuning, and the Pacific sunset in California.
+              Built by <a href="http://seanmulholland.com" target="_blank" style={{ color: '#C45B28' }}>Sean Mulholland</a> with sacred geometry, 432 Hz tuning, and the Pacific sunset in California.
             </p>
             <button onClick={() => setAboutOpen(false)} style={styles.modalClose}>
               Close
@@ -97,10 +97,10 @@ export function GhostUI({ appState, onReturnToLanding, onToggleMute, isMuted }: 
 }
 
 const glass: React.CSSProperties = {
-  background: 'rgba(255, 255, 255, 0.12)',
+  background: 'rgba(245, 240, 225, 0.85)',
   backdropFilter: 'blur(12px)',
   WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255, 255, 255, 0.6)',
+  border: '1px solid rgba(180, 160, 120, 0.35)',
   borderRadius: 12,
 }
 
@@ -129,28 +129,28 @@ const styles: Record<string, React.CSSProperties> = {
   logo: {
     fontSize: '0.85rem',
     letterSpacing: '0.2em',
-    color: '#0d1f50',
+    color: '#4A3A1E',
     fontFamily: "'Amarante', Georgia, serif",
-    textShadow: '0 0 8px rgba(245,192,96,0.6), 0 0 20px rgba(245,166,35,0.3)',
+    textShadow: '0 0 6px rgba(212,168,67,0.3)',
   },
   ghostBtn: {
     background: 'transparent',
-    border: '1px solid rgba(255,255,255,0.6)',
+    border: '1px solid rgba(180,160,120,0.4)',
     borderRadius: 20,
-    color: '#0d1f50',
+    color: '#4A3A1E',
     fontSize: '0.8rem',
     letterSpacing: '0.1em',
     padding: '6px 14px',
     cursor: 'pointer',
     outline: 'none',
     fontFamily: "'Amarante', Georgia, serif",
-    textShadow: '0 0 8px rgba(245,192,96,0.5)',
+    textShadow: '0 0 6px rgba(212,168,67,0.25)',
     transition: 'color 0.2s, border-color 0.2s, background 0.2s',
   },
   modalOverlay: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(255,255,255,0.25)',
+    background: 'rgba(245,240,225,0.7)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -158,15 +158,15 @@ const styles: Record<string, React.CSSProperties> = {
     pointerEvents: 'auto',
   },
   modal: {
-    background: 'rgba(255, 255, 255, 0.12)',
+    background: 'rgba(255, 255, 255, 0.8)',
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255, 255, 255, 0.6)',
+    border: '1px solid rgba(180, 160, 120, 0.35)',
     borderRadius: 16,
     padding: '32px 36px',
     maxWidth: 480,
     width: '90%',
-    color: '#0d1f50',
+    color: '#4A3A1E',
     fontFamily: "'Amarante', Georgia, serif",
   },
   modalTitle: {
@@ -174,23 +174,22 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.15em',
     marginTop: 0,
     marginBottom: 16,
-    color: '#0d1f50',
-    textShadow: '0 0 10px rgba(245,192,96,0.5), 0 0 24px rgba(245,166,35,0.25)',
+    color: '#4A3A1E',
+    textShadow: '0 0 8px rgba(212,168,67,0.3)',
   },
   modalText: {
     fontSize: '0.9rem',
     lineHeight: 1.6,
     marginBottom: 12,
-    color: '#0d1f50',
-    textShadow: '0 0 6px rgba(245,192,96,0.3)',
+    color: '#6B5B3A',
   },
   modalClose: {
     marginTop: 12,
     background: 'transparent',
-    border: '1px solid rgba(255,255,255,0.6)',
+    border: '1px solid rgba(180,160,120,0.4)',
     borderRadius: 20,
-    color: '#0d1f50',
-    textShadow: '0 0 8px rgba(245,192,96,0.5)',
+    color: '#4A3A1E',
+    textShadow: '0 0 6px rgba(212,168,67,0.25)',
     fontSize: '0.85rem',
     padding: '8px 24px',
     cursor: 'pointer',

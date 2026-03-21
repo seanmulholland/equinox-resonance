@@ -1,6 +1,6 @@
 /**
- * PermissionModal — glassmorphic permission request.
- * Appears after "Enter the Equinox" is clicked.
+ * PermissionModal — retro 70s glassmorphic permission request.
+ * Appears after "Enter the Resonance" is clicked.
  * Two paths: grant mic+cam, or skip to fallback.
  */
 
@@ -50,7 +50,7 @@ export function PermissionModal({ onGrant, onDeny }: Props) {
     <div ref={overlayRef} style={styles.overlay}>
       <div ref={cardRef} style={styles.card}>
         {/* Sacred symbol */}
-        <div style={styles.symbol}>✦</div>
+        <div style={styles.symbol}>&#10022;</div>
 
         <h2 style={styles.heading}>Merge with the Resonance</h2>
         <p style={styles.body}>
@@ -81,7 +81,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'rgba(2,4,15,0.7)',
+    background: 'rgba(245,240,225,0.85)',
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',
     zIndex: 100,
@@ -94,18 +94,18 @@ const styles: Record<string, React.CSSProperties> = {
     maxWidth: 420,
     width: '90%',
     padding: '40px 36px',
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(245,192,96,0.25)',
+    background: 'rgba(255,255,255,0.6)',
+    border: '2px solid rgba(180,160,120,0.3)',
     borderRadius: 20,
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    boxShadow: '0 0 60px rgba(245,166,35,0.15), inset 0 0 40px rgba(245,192,96,0.03)',
+    boxShadow: '0 4px 40px rgba(120,90,50,0.1)',
     textAlign: 'center',
   },
   symbol: {
     fontSize: 32,
-    color: '#f5c060',
-    textShadow: '0 0 20px rgba(245,192,96,0.8)',
+    color: '#C45B28',
+    textShadow: '0 0 15px rgba(196,91,40,0.4)',
     lineHeight: 1,
     marginBottom: 4,
   },
@@ -113,18 +113,18 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 'clamp(1.2rem, 2.5vw, 1.5rem)',
     fontWeight: 300,
     letterSpacing: '0.12em',
-    color: '#fff8e8',
+    color: '#4A3A1E',
     fontFamily: "'Amarante', Georgia, serif",
   },
   body: {
     fontSize: '0.95rem',
     lineHeight: 1.7,
-    color: 'rgba(255,240,200,0.75)',
+    color: '#6B5B3A',
     fontFamily: "'Amarante', Georgia, serif",
   },
   sub: {
     fontSize: '0.75rem',
-    color: 'rgba(255,240,200,0.4)',
+    color: '#9B8B6A',
     letterSpacing: '0.08em',
     fontFamily: "'Amarante', Georgia, serif",
   },
@@ -139,14 +139,13 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '12px 28px',
     fontSize: '0.9rem',
     letterSpacing: '0.12em',
-    color: '#fff8e0',
-    background: 'rgba(245,166,35,0.18)',
-    border: '1px solid rgba(245,192,96,0.5)',
+    color: '#4A3A1E',
+    background: 'rgba(212,168,67,0.2)',
+    border: '1px solid rgba(196,91,40,0.35)',
     borderRadius: 30,
     cursor: 'pointer',
-    backdropFilter: 'blur(8px)',
-    boxShadow: '0 0 20px rgba(245,166,35,0.25)',
-    textShadow: '0 0 10px rgba(255,220,100,0.6)',
+    boxShadow: '0 0 15px rgba(212,168,67,0.15)',
+    textShadow: '0 0 8px rgba(212,168,67,0.3)',
     outline: 'none',
     fontFamily: "'Amarante', Georgia, serif",
     transition: 'background 0.2s',
@@ -155,9 +154,9 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '12px 28px',
     fontSize: '0.9rem',
     letterSpacing: '0.12em',
-    color: 'rgba(255,240,200,0.5)',
+    color: '#8B7B5A',
     background: 'transparent',
-    border: '1px solid rgba(255,240,200,0.15)',
+    border: '1px solid rgba(180,160,120,0.3)',
     borderRadius: 30,
     cursor: 'pointer',
     outline: 'none',

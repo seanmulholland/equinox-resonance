@@ -77,45 +77,42 @@ export default function App() {
 
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
-      {/* CSS sunset — persistent base layer, identical to landing page */}
+      {/* Retro cream base with graph paper grid */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: `linear-gradient(to top, #05091f 0%, #0d1f50 18%, #14388c 32%, #c05878 50%, #f29a3e 62%, #74a8db 80%, #b4cbef 100%)`,
+        background: '#F5F0E1',
       }} />
+      {/* Subtle graph paper grid overlay */}
       <div style={{
-        position: 'absolute', top: '52%', left: 0, right: 0, height: '2px', pointerEvents: 'none',
-        background: 'linear-gradient(to right, transparent, #f5c060, #fff8e1, #f5c060, transparent)',
-        opacity: 0.6, boxShadow: '0 0 40px 12px rgba(245,192,96,0.4)',
-      }} />
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.8,
+        position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.12,
         backgroundImage: `
-          radial-gradient(1px 1px at 15% 12%, rgba(255,255,255,0.9) 0%, transparent 100%),
-          radial-gradient(1px 1px at 35%  8%, rgba(255,255,255,0.7) 0%, transparent 100%),
-          radial-gradient(1.5px 1.5px at 55% 5%, rgba(255,255,255,0.8) 0%, transparent 100%),
-          radial-gradient(1px 1px at 72% 10%, rgba(255,255,255,0.6) 0%, transparent 100%),
-          radial-gradient(1px 1px at 88%  7%, rgba(255,255,255,0.9) 0%, transparent 100%),
-          radial-gradient(1px 1px at  8% 22%, rgba(255,255,255,0.5) 0%, transparent 100%),
-          radial-gradient(1px 1px at 92% 18%, rgba(255,255,255,0.7) 0%, transparent 100%)`,
+          linear-gradient(rgba(180,160,120,1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(180,160,120,1) 1px, transparent 1px)`,
+        backgroundSize: '40px 40px',
+      }} />
+      {/* Warm radial vignette — darker edges like aged paper */}
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'radial-gradient(ellipse at center, transparent 30%, rgba(180,150,100,0.15) 70%, rgba(120,90,50,0.3) 100%)',
       }} />
 
-      {/* Persistent sun — lives in the BG layer so viz effects render over it */}
+      {/* Persistent sun orb — warmer, more saturated like the album art */}
       <div style={{
         position: 'absolute',
-        top: 'calc(52% - 60px)',
+        top: 'calc(50% - 60px)',
         left: '50%',
         transform: 'translateX(-50%)',
         width: 120, height: 120,
         borderRadius: '50%',
-        background: 'radial-gradient(circle, #fff8c0 0%, #f5c060 30%, #f5a623 55%, rgba(245,166,35,0.3) 80%, rgba(245,100,35,0) 100%)',
-        boxShadow: '0 0 60px 35px rgba(245,166,35,0.45), 0 0 120px 60px rgba(245,100,35,0.2)',
+        background: 'radial-gradient(circle, #FFE066 0%, #D4A843 35%, #C45B28 65%, rgba(196,91,40,0.2) 85%, transparent 100%)',
+        boxShadow: '0 0 50px 30px rgba(212,168,67,0.35), 0 0 100px 50px rgba(196,91,40,0.15)',
         pointerEvents: 'none',
       }} />
 
-      {/* Canvas with mix-blend-mode:screen — black=transparent, colours add over the CSS sunset */}
+      {/* Canvas — multiply blend so colours darken the cream base */}
       <div ref={sceneWrap} style={{
         position: 'absolute', inset: 0, opacity: 0, zIndex: 1,
-        mixBlendMode: 'screen',
+        mixBlendMode: 'multiply',
       }}>
         <Scene audioDataRef={audioDataRef} landmarks={landmarks} appState={appState} />
       </div>
@@ -127,7 +124,7 @@ export default function App() {
           title="Return to home"
           style={{
             position: 'absolute',
-            top: 'calc(52% - 60px)',
+            top: 'calc(50% - 60px)',
             left: '50%',
             transform: 'translateX(-50%)',
             width: 120, height: 120,
