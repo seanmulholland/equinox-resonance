@@ -39,10 +39,10 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
   const faceMatRef  = useRef<THREE.ShaderMaterial>(null)
   const faceGeoRef  = useRef<THREE.BufferGeometry>(null)
   const haloRef     = useRef<THREE.Mesh>(null)
-  const haloMatRef  = useRef<THREE.MeshBasicMaterial>(null)
 
-  const faceAlpha  = useRef(0)
-  const shapeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const faceAlpha   = useRef(0)
+  const shapeTimer  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const faceCenterY = useRef(0)  // tracks face vertical center for ring positioning
 
   // Two shape buffers for smooth crossfade morphing
   const fallbackA = useRef(generateFallback())
@@ -126,11 +126,14 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
       faceMatRef.current.uniforms.uAlpha.value = faceAlpha.current
     }
 
-    // Halo pulses with bass, visible only when face is showing
-    if (haloRef.current && haloMatRef.current) {
-      haloRef.current.scale.setScalar(1.0 + ad.bass * 0.15)
+    // Halo: raw amplified signal — jittery is fine, must be obviously reactive
+    if (haloRef.current) {
+      const raw = Math.min(1.0, ad.bass * 4.0 + ad.rms * 1.5)
+      haloRef.current.scale.setScalar(1.0 + raw * 0.6)
       haloRef.current.rotation.z = t * 0.05
-      ;(haloMatRef.current as any).opacity = faceAlpha.current * (0.25 + ad.bass * 0.15)
+      haloRef.current.position.y = faceCenterY.current
+      const mat = haloRef.current.material as THREE.MeshBasicMaterial
+      mat.opacity = 0.3 + raw * 0.7
     }
 
     // ── Shape geometry — always rotating sacred pattern ──
@@ -175,6 +178,9 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
       const span = Math.max(maxX - minX || 0.001, maxY - minY || 0.001)
       const scale = (2.8 * 2) / span
 
+      // Face landmarks are normalized to origin, so halo always sits at Y=0
+      faceCenterY.current = 0
+
       const facePosAttr = faceGeoRef.current.attributes.position as THREE.BufferAttribute
       for (let i = 0; i < LANDMARK_COUNT; i++) {
         const [lx, ly, lz] = landmarks[i]
@@ -191,14 +197,13 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
 
   return (
     <group>
-      {/* Pink/magenta halo ring — only visible when face is showing */}
-      <mesh ref={haloRef} position={[0, 0.6, -1.0]}>
-        <ringGeometry args={[4.2, 5.0, 80]} />
+      {/* Pink/magenta halo ring — frames the face, scales with audio */}
+      <mesh ref={haloRef} position={[0, 0, 0]}>
+        <ringGeometry args={[2.8, 3.3, 80]} />
         <meshBasicMaterial
-          ref={haloMatRef}
           color={new THREE.Color(0xff44cc)}
           transparent
-          opacity={0}
+          opacity={0.3}
           depthWrite={false}
           side={THREE.DoubleSide}
           blending={THREE.AdditiveBlending}

@@ -1,6 +1,7 @@
-// Ambient effect layer — rings, fractal, spiral additive over the CSS sunset.
-// No base sky color here; that comes from CSS behind the transparent canvas.
-// Audio-reactive: bass drives ring pulse, rms drives brightness.
+// Effect layer — rendered on a black canvas with mix-blend-mode:screen.
+// Black pixels = transparent (screen blend passes CSS sunset through).
+// Coloured pixels (rings, fractal, spiral) lighten/tint the CSS sunset.
+// Audio-reactive via bass/mid/rms/audioEnergy uniforms.
 
 uniform float uTime;
 uniform float uBass;
@@ -38,81 +39,58 @@ float snoise2(vec2 v) {
 
 float fbm(vec2 p) {
   float v = 0.;
-  v += 0.5 * snoise2(p);
+  v += 0.5  * snoise2(p);
   p  = p * 2.1 + vec2(1.7, 9.2);
   v += 0.25 * snoise2(p);
   return v;
 }
 
-// ── Color palette ────────────────────────────────────────────────────
 vec3 palette(float t, float phase) {
   float p = fract(phase);
   float idx = floor(mod(phase, 4.0));
-
   vec3 a, b, c, d;
-  vec3 a0 = vec3(.5,.3,.4); vec3 b0 = vec3(.5,.4,.3);
-  vec3 c0 = vec3(.8,.6,.5); vec3 d0 = vec3(.60,.40,.20);
-  vec3 a1 = vec3(.1,.2,.5); vec3 b1 = vec3(.4,.4,.4);
-  vec3 c1 = vec3(1.,.8,.6); vec3 d1 = vec3(.00,.20,.50);
-  vec3 a2 = vec3(.1,.4,.5); vec3 b2 = vec3(.3,.4,.3);
-  vec3 c2 = vec3(.9,1.,.7); vec3 d2 = vec3(.10,.60,.80);
-  vec3 a3 = vec3(.4,.1,.5); vec3 b3 = vec3(.4,.3,.4);
-  vec3 c3 = vec3(.7,.5,.9); vec3 d3 = vec3(.80,.10,.40);
-
-  if (idx < 1.0) {
-    a = mix(a0, a1, p); b = mix(b0, b1, p);
-    c = mix(c0, c1, p); d = mix(d0, d1, p);
-  } else if (idx < 2.0) {
-    a = mix(a1, a2, p); b = mix(b1, b2, p);
-    c = mix(c1, c2, p); d = mix(d1, d2, p);
-  } else if (idx < 3.0) {
-    a = mix(a2, a3, p); b = mix(b2, b3, p);
-    c = mix(c2, c3, p); d = mix(d2, d3, p);
-  } else {
-    a = mix(a3, a0, p); b = mix(b3, b0, p);
-    c = mix(c3, c0, p); d = mix(d3, d0, p);
-  }
+  vec3 a0=vec3(.5,.3,.4); vec3 b0=vec3(.5,.4,.3); vec3 c0=vec3(.8,.6,.5); vec3 d0=vec3(.60,.40,.20);
+  vec3 a1=vec3(.1,.2,.5); vec3 b1=vec3(.4,.4,.4); vec3 c1=vec3(1.,.8,.6); vec3 d1=vec3(.00,.20,.50);
+  vec3 a2=vec3(.1,.4,.5); vec3 b2=vec3(.3,.4,.3); vec3 c2=vec3(.9,1.,.7); vec3 d2=vec3(.10,.60,.80);
+  vec3 a3=vec3(.4,.1,.5); vec3 b3=vec3(.4,.3,.4); vec3 c3=vec3(.7,.5,.9); vec3 d3=vec3(.80,.10,.40);
+  if      (idx < 1.0) { a=mix(a0,a1,p); b=mix(b0,b1,p); c=mix(c0,c1,p); d=mix(d0,d1,p); }
+  else if (idx < 2.0) { a=mix(a1,a2,p); b=mix(b1,b2,p); c=mix(c1,c2,p); d=mix(d1,d2,p); }
+  else if (idx < 3.0) { a=mix(a2,a3,p); b=mix(b2,b3,p); c=mix(c2,c3,p); d=mix(d2,d3,p); }
+  else                { a=mix(a3,a0,p); b=mix(b3,b0,p); c=mix(c3,c0,p); d=mix(d3,d0,p); }
   return a + b * cos(6.28318 * (c * t + d));
 }
 
-// ── Main ─────────────────────────────────────────────────────────────
 void main() {
   vec2 uv = vUv;
   vec2 centered = uv - .5;
   float dist = length(centered);
 
-  // Fade entirely toward edges — no hard canvas border
-  float edgeFade = 1.0 - smoothstep(0.3, 0.5, dist);
-  if (edgeFade <= 0.0) { gl_FragColor = vec4(0.0); return; }
-
   float audioPhaseShift = uBass * 0.6 + uRms * 0.3 + uAudioEnergy * 0.4;
   float palPhase = uTime * 0.008 + audioPhaseShift;
-  float colorT = dist * 0.8 + uTime * 0.04 + uBass * 0.12 - uMid * 0.08;
+  float colorT   = dist * 0.8 + uTime * 0.04 + uBass * 0.12 - uMid * 0.08;
 
+  // Black base — screen blend makes this transparent, CSS sunset shows through
   vec3 effect = vec3(0.0);
 
-  // ── Emanating rings ─────────────────────────────────────────────
+  // ── Emanating rings ──────────────────────────────────────────────
   float ringSpeed = 0.9 + uBass * 1.2 + uAudioEnergy * 0.3;
   float rings  = pow(sin(dist * 18.0 - uTime * ringSpeed) * 0.5 + 0.5, 6.0);
   float rings2 = pow(sin(dist * 30.0 - uTime * ringSpeed * 0.7 + uBass * 3.0) * 0.5 + 0.5, 10.0);
+  vec3  ringCol = palette(fract(colorT + 0.3 + uMid * 0.2), palPhase);
+  float ringBright = 0.2 + uBass * 0.4 + uRms * 0.15;
+  effect += rings  * ringCol * ringBright * 0.4;
+  effect += rings2 * ringCol * ringBright * 0.22;
 
-  vec3 ringColor = palette(fract(colorT + 0.3 + uMid * 0.2), palPhase);
-  float ringBright = 0.25 + uBass * 0.4 + uRms * 0.15;
-  effect += rings  * ringColor * ringBright * 0.5;
-  effect += rings2 * ringColor * ringBright * 0.25;
-
-  // ── Fractal noise ────────────────────────────────────────────────
+  // ── Fractal noise tint ───────────────────────────────────────────
   float fractal = fbm(centered * 2.5 + uTime * 0.06) * 0.5 + 0.5;
-  vec3 fractalColor = palette(fractal + uTime * 0.03 + uMid * 0.15, palPhase);
-  effect += fractalColor * fractal * (0.06 + uMid * 0.05 + uAudioEnergy * 0.04);
+  vec3  fracCol = palette(fractal + uTime * 0.03 + uMid * 0.15, palPhase);
+  effect += fracCol * fractal * (0.05 + uMid * 0.05 + uAudioEnergy * 0.04);
 
-  // ── Spiral arms ─────────────────────────────────────────────────
-  float angle = atan(centered.y, centered.x);
+  // ── Spiral arms ──────────────────────────────────────────────────
+  float angle  = atan(centered.y, centered.x);
   float spiral = pow(sin(angle * 3.0 + log(dist * 8.0 + 0.01) * 4.0 - uTime * 0.4) * 0.5 + 0.5, 5.0);
   spiral *= (1.0 - smoothstep(0.0, 0.55, dist));
-  effect += spiral * palette(fract(colorT + 0.6), palPhase) * (0.15 + uBass * 0.18);
-
-  effect *= edgeFade;
+  effect += spiral * palette(fract(colorT + 0.6), palPhase) * (0.12 + uBass * 0.18);
 
   gl_FragColor = vec4(effect, 1.0);
 }

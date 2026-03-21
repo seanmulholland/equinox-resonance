@@ -68,10 +68,8 @@ export function FractalBackground({ audioDataRef }: Props) {
         vertexShader={backgroundVert}
         fragmentShader={backgroundFrag}
         uniforms={uniforms}
-        transparent
         depthWrite={false}
         depthTest={false}
-        blending={THREE.AdditiveBlending}
       />
     </mesh>
   )

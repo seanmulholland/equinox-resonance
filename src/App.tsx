@@ -67,55 +67,68 @@ export default function App() {
 
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
-      {/* Persistent sunset background — exact same as landing page */}
+      {/* CSS sunset — persistent base layer, identical to landing page */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: `linear-gradient(
-          to top,
-          #05091f 0%,
-          #0d1f50 18%,
-          #14388c 32%,
-          #c05878 50%,
-          #f29a3e 62%,
-          #74a8db 80%,
-          #b4cbef 100%
-        )`,
+        background: `linear-gradient(to top, #05091f 0%, #0d1f50 18%, #14388c 32%, #c05878 50%, #f29a3e 62%, #74a8db 80%, #b4cbef 100%)`,
       }} />
-      {/* Horizon glow line */}
       <div style={{
-        position: 'absolute', top: '52%', left: 0, right: 0,
-        height: '2px',
+        position: 'absolute', top: '52%', left: 0, right: 0, height: '2px', pointerEvents: 'none',
         background: 'linear-gradient(to right, transparent, #f5c060, #fff8e1, #f5c060, transparent)',
-        opacity: 0.6,
-        boxShadow: '0 0 40px 12px rgba(245,192,96,0.4)',
-        pointerEvents: 'none',
+        opacity: 0.6, boxShadow: '0 0 40px 12px rgba(245,192,96,0.4)',
       }} />
-      {/* Stars */}
       <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
+        position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.8,
         backgroundImage: `
           radial-gradient(1px 1px at 15% 12%, rgba(255,255,255,0.9) 0%, transparent 100%),
-          radial-gradient(1px 1px at 35% 8%, rgba(255,255,255,0.7) 0%, transparent 100%),
+          radial-gradient(1px 1px at 35%  8%, rgba(255,255,255,0.7) 0%, transparent 100%),
           radial-gradient(1.5px 1.5px at 55% 5%, rgba(255,255,255,0.8) 0%, transparent 100%),
           radial-gradient(1px 1px at 72% 10%, rgba(255,255,255,0.6) 0%, transparent 100%),
-          radial-gradient(1px 1px at 88% 7%, rgba(255,255,255,0.9) 0%, transparent 100%),
-          radial-gradient(1px 1px at 8% 22%, rgba(255,255,255,0.5) 0%, transparent 100%),
-          radial-gradient(1px 1px at 92% 18%, rgba(255,255,255,0.7) 0%, transparent 100%),
-          radial-gradient(1px 1px at 25% 3%, rgba(255,255,255,0.8) 0%, transparent 100%),
-          radial-gradient(1px 1px at 65% 2%, rgba(255,255,255,0.6) 0%, transparent 100%)
-        `,
-        opacity: 0.8,
+          radial-gradient(1px 1px at 88%  7%, rgba(255,255,255,0.9) 0%, transparent 100%),
+          radial-gradient(1px 1px at  8% 22%, rgba(255,255,255,0.5) 0%, transparent 100%),
+          radial-gradient(1px 1px at 92% 18%, rgba(255,255,255,0.7) 0%, transparent 100%)`,
       }} />
 
-      {/* Transparent canvas — particles float over the CSS sunset.
-          mask-image fades edges to prevent hard WebGL canvas border. */}
+      {/* Persistent sun — lives in the BG layer so viz effects render over it */}
+      <div style={{
+        position: 'absolute',
+        top: 'calc(52% - 60px)',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 120, height: 120,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, #fff8c0 0%, #f5c060 30%, #f5a623 55%, rgba(245,166,35,0.3) 80%, rgba(245,100,35,0) 100%)',
+        boxShadow: '0 0 60px 35px rgba(245,166,35,0.45), 0 0 120px 60px rgba(245,100,35,0.2)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Canvas with mix-blend-mode:screen — black=transparent, colours add over the CSS sunset */}
       <div ref={sceneWrap} style={{
         position: 'absolute', inset: 0, opacity: 0, zIndex: 1,
-        WebkitMaskImage: 'radial-gradient(ellipse 88% 88% at 50% 50%, black 55%, transparent 100%)',
-        maskImage: 'radial-gradient(ellipse 88% 88% at 50% 50%, black 55%, transparent 100%)',
+        mixBlendMode: 'screen',
       }}>
         <Scene audioDataRef={audioDataRef} landmarks={landmarks} appState={appState} />
       </div>
+
+      {/* Invisible click target over the sun — only active during viz */}
+      {(appState === 'constellation' || appState === 'fallback') && (
+        <button
+          onClick={handleReturnToLanding}
+          title="Return to home"
+          style={{
+            position: 'absolute',
+            top: 'calc(52% - 60px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 120, height: 120,
+            borderRadius: '50%',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            zIndex: 5,
+          }}
+        />
+      )}
 
       {/* Video element for MediaPipe — must be in DOM and renderable (not display:none) */}
       <video
