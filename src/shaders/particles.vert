@@ -83,15 +83,17 @@ vec3 constellationPalette(float t) {
 }
 
 void main() {
-  // Wind displacement — less on constellation so face stays readable
+  // Wind displacement — skip expensive noise for constellation (face stays still)
   float windMult = mix(1.0, 0.08, uConstellationMode);
-  float slowTime = uTime * 0.18;
-  float noiseScale = 0.6 + uBass * 0.4;
-  float nx = snoise(vec3(position.xy * noiseScale, slowTime));
-  float ny = snoise(vec3(position.yz * noiseScale, slowTime + 13.7));
-  float nz = snoise(vec3(position.xz * noiseScale, slowTime + 7.3));
-  float windStr = (0.25 + uRms * 0.8) * windMult;
-  vec3 displaced = position + vec3(nx, ny, nz) * windStr;
+  vec3 displaced = position;
+  if (windMult > 0.1) {
+    float slowTime = uTime * 0.18;
+    float noiseScale = 0.6 + uBass * 0.4;
+    // Single noise sample, derive xyz from swizzle — 3x cheaper
+    float n = snoise(vec3(position.xy * noiseScale, slowTime));
+    float windStr = (0.25 + uRms * 0.8) * windMult;
+    displaced += vec3(n, n * 0.7, -n * 0.5) * windStr;
+  }
 
   // Color — blend between palettes based on mode
   float baseT = fract(uTime * 0.04 + length(position) * 0.06 + uMid * 0.2);
@@ -105,10 +107,10 @@ void main() {
   vec4 mvPos = modelViewMatrix * vec4(displaced, 1.0);
   gl_Position = projectionMatrix * mvPos;
 
-  // Constellation particles: smaller, uniform size for dense face look
-  float bassSwell = mix(1.0 + uBass * 1.2, 1.0 + uBass * 0.3, uConstellationMode);
+  // Constellation particles: big, bloomy dots for glowing face look
+  float bassSwell = mix(1.0 + uBass * 1.2, 1.0 + uBass * 0.5, uConstellationMode);
   float dist = max(-mvPos.z, 0.1);
-  float sizeScale = mix(220.0, 180.0, uConstellationMode);
+  float sizeScale = mix(220.0, 500.0, uConstellationMode);
   gl_PointSize = uSize * aScale * bassSwell * (sizeScale / dist);
-  gl_PointSize = clamp(gl_PointSize, 1.0, mix(18.0, 10.0, uConstellationMode));
+  gl_PointSize = clamp(gl_PointSize, 1.0, mix(18.0, 40.0, uConstellationMode));
 }

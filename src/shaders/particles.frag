@@ -10,14 +10,15 @@ void main() {
   float dist = length(uv);
   if (dist > 0.5) discard;
 
-  // Sharp bright core for constellation, softer for background
-  float coreSharpness = mix(1.4, 2.2, vMode);
+  // Constellation: soft bloomy falloff for big glowing dots
+  // Fallback: sharper, subtler
+  float coreSharpness = mix(1.4, 1.0, vMode);
   float alpha = pow(1.0 - smoothstep(0.0, 0.5, dist), coreSharpness);
 
-  // Constellation: white/cyan core bleeds into teal
-  // Fallback: colored glow
-  vec3 core  = mix(vColor, vec3(0.9, 1.0, 1.0), vMode * (1.0 - dist * 2.0));
-  vec3 color = core * (1.0 + (1.0 - dist * 2.0) * mix(0.5, 1.2, vMode));
+  // Constellation: bright white/cyan core with wide teal bloom halo
+  vec3 core  = mix(vColor, vec3(0.95, 1.0, 1.0), vMode * smoothstep(0.3, 0.0, dist));
+  float bloom = exp(-dist * 3.0) * vMode;  // exponential glow halo
+  vec3 color = core * (1.0 + bloom * 1.5 + (1.0 - dist * 2.0) * mix(0.5, 0.8, vMode));
 
   gl_FragColor = vec4(color, alpha * vAlpha);
 }

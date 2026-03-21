@@ -87,8 +87,8 @@ export class HarmonicEngine {
       micGain.connect(this.analyser)
     }
 
-    // Fade in gently
-    this.masterGain.gain.linearRampToValueAtTime(0.7, this.ctx.currentTime + 4)
+    // Fade in gently — half volume, background drone
+    this.masterGain.gain.linearRampToValueAtTime(0.35, this.ctx.currentTime + 4)
   }
 
   // ─── Drone ────────────────────────────────────────────────────────
@@ -102,9 +102,10 @@ export class HarmonicEngine {
       const osc = this.ctx!.createOscillator()
       const g = this.ctx!.createGain()
       osc.type = types[i]
-      osc.frequency.value = i === 0 ? BASE / 2 : BASE  // sub + harmonics
+      // 1-2 octaves lower: sub at BASE/4 (108Hz), harmonics at BASE/2 (216Hz)
+      osc.frequency.value = i === 0 ? BASE / 4 : BASE / 2
       osc.detune.value = detune
-      g.gain.value = i === 0 ? 0.12 : 0.05  // sub louder, harmonics subtle
+      g.gain.value = i === 0 ? 0.06 : 0.025  // half volume — background drone
       osc.connect(g)
       g.connect(this.dryGain!)
       osc.start()
@@ -139,12 +140,13 @@ export class HarmonicEngine {
       const now = this.ctx.currentTime
 
       const freq = this.nextArpeggioFreq()
-      this.playNote(freq, now, 2.8, 0.18)
+      this.playNote(freq, now, 2.8, 0.09)
 
       // Random Solfeggio harmonic bell ~ 25% of steps
       if (Math.random() < 0.25) {
         const sf = SOLFEGGIO[Math.floor(Math.random() * SOLFEGGIO.length)]
-        this.playBell(sf * (Math.random() < 0.5 ? 1 : 2), now + 0.6, 0.08)
+        // Bells 1 octave lower, half volume
+        this.playBell(sf * 0.5, now + 0.6, 0.04)
       }
 
       // Vary tempo slightly — golden-ratio-ish feel
@@ -159,8 +161,8 @@ export class HarmonicEngine {
   private nextArpeggioFreq(): number {
     const idx = SEQUENCE[this.seqIndex % SEQUENCE.length]
     this.seqIndex++
-    // Occasionally drop to sub-octave for depth
-    const octave = Math.random() < 0.15 ? 0.5 : (Math.random() < 0.1 ? 2 : 1)
+    // Drop everything 1 octave, occasionally 2 octaves for depth
+    const octave = Math.random() < 0.15 ? 0.25 : 0.5
     return SCALE[idx] * octave
   }
 
@@ -278,8 +280,8 @@ export class HarmonicEngine {
   reactToInput(rms: number) {
     if (!this.ctx || !this.masterGain) return
     const t = this.ctx.currentTime
-    const vol = 0.7 + rms * 0.5
-    this.masterGain.gain.linearRampToValueAtTime(Math.min(vol, 1.2), t + 0.1)
+    const vol = 0.35 + rms * 0.25
+    this.masterGain.gain.linearRampToValueAtTime(Math.min(vol, 0.6), t + 0.1)
   }
 
   resume()  { this.ctx?.resume() }

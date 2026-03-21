@@ -34,29 +34,27 @@ export function LandingPage({ onEnter }: Props) {
       {/* Horizon glow line */}
       <div style={styles.horizon} />
 
-      {/* Sun orb */}
-      <div style={styles.sun} />
+      {/* Sun orb — large, clickable as main CTA */}
+      <button
+        ref={btnRef}
+        onClick={onEnter}
+        style={styles.sunButton}
+        onMouseEnter={e => {
+          gsap.to(e.currentTarget, { scale: 1.06, duration: 0.4, ease: 'power2.out' })
+        }}
+        onMouseLeave={e => {
+          gsap.to(e.currentTarget, { scale: 1.0, duration: 0.4, ease: 'power2.out' })
+        }}
+      >
+        <div style={styles.sunOrb} />
+        <span style={styles.sunLabel}>Enter the Resonance</span>
+      </button>
 
       {/* Title */}
       <div style={styles.titleWrap}>
         <h1 style={styles.title}>Equinox Resonance</h1>
         <p style={styles.subtitle}>a harmonic mirror for the turning of the year</p>
       </div>
-
-      {/* CTA */}
-      <button
-        ref={btnRef}
-        onClick={onEnter}
-        style={styles.enterBtn}
-        onMouseEnter={e => {
-          gsap.to(e.currentTarget, { scale: 1.08, duration: 0.3, ease: 'power2.out' })
-        }}
-        onMouseLeave={e => {
-          gsap.to(e.currentTarget, { scale: 1.0, duration: 0.3, ease: 'power2.out' })
-        }}
-      >
-        Enter the Equinox
-      </button>
 
       {/* Shimmer stars */}
       <div style={styles.stars} />
@@ -99,22 +97,44 @@ const styles: Record<string, React.CSSProperties> = {
     opacity: 0.6,
     boxShadow: '0 0 40px 12px rgba(245,192,96,0.4)',
   },
-  sun: {
+  sunButton: {
     position: 'absolute',
-    top: 'calc(52% - 28px)',
+    top: 'calc(52% - 100px)',
     left: '50%',
     transform: 'translateX(-50%)',
-    width: 56,
-    height: 56,
+    width: 200,
+    height: 200,
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    outline: 'none',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    padding: 0,
+  },
+  sunOrb: {
+    width: 180,
+    height: 180,
     borderRadius: '50%',
-    background: 'radial-gradient(circle, #fff8c0 0%, #f5a623 50%, rgba(245,166,35,0) 100%)',
-    boxShadow: '0 0 60px 30px rgba(245,166,35,0.5), 0 0 120px 60px rgba(245,100,35,0.2)',
+    background: 'radial-gradient(circle, #fff8c0 0%, #f5c060 30%, #f5a623 55%, rgba(245,166,35,0.3) 80%, rgba(245,100,35,0) 100%)',
+    boxShadow: '0 0 80px 50px rgba(245,166,35,0.5), 0 0 160px 90px rgba(245,100,35,0.25), 0 0 250px 120px rgba(200,80,50,0.1)',
+  },
+  sunLabel: {
+    marginTop: 16,
+    fontSize: 'clamp(0.8rem, 1.3vw, 1rem)',
+    letterSpacing: '0.25em',
+    color: 'rgba(255,248,200,0.8)',
+    fontFamily: 'Georgia, serif',
+    textShadow: '0 0 16px rgba(255,220,100,0.7)',
   },
   titleWrap: {
     position: 'relative',
     textAlign: 'center',
     zIndex: 2,
-    marginBottom: '32vh',
+    marginBottom: '42vh',
   },
   title: {
     fontSize: 'clamp(2rem, 5vw, 4rem)',
@@ -131,26 +151,6 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'rgba(255,240,200,0.7)',
     textTransform: 'lowercase',
     fontFamily: 'Georgia, serif',
-  },
-  enterBtn: {
-    position: 'absolute',
-    bottom: '18%',
-    padding: '14px 40px',
-    fontSize: 'clamp(0.9rem, 1.5vw, 1.1rem)',
-    letterSpacing: '0.2em',
-    color: '#fff8e0',
-    background: 'rgba(245,166,35,0.08)',
-    border: '1px solid rgba(245,192,96,0.5)',
-    borderRadius: 40,
-    cursor: 'pointer',
-    backdropFilter: 'blur(10px)',
-    WebkitBackdropFilter: 'blur(10px)',
-    boxShadow: '0 0 30px rgba(245,166,35,0.3), inset 0 0 20px rgba(245,192,96,0.05)',
-    textShadow: '0 0 12px rgba(255,220,100,0.8)',
-    transition: 'box-shadow 0.3s',
-    outline: 'none',
-    fontFamily: 'Georgia, serif',
-    zIndex: 10,
   },
   stars: {
     position: 'absolute',

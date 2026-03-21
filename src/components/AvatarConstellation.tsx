@@ -19,7 +19,7 @@ interface Props {
 }
 
 const LANDMARK_COUNT = 468
-const FALLBACK_COUNT = 2000
+const FALLBACK_COUNT = 800
 
 export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
   const matRef    = useRef<THREE.ShaderMaterial>(null)
@@ -100,16 +100,39 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
 
     const posAttr = geoRef.current.attributes.position as THREE.BufferAttribute
 
-    // Map live face landmarks into scene space
-    // MediaPipe: x,y are 0–1 (UV), z is relative depth (negative = closer)
-    // Scale to fill ~65vh: camera at z=7, fov=65 → visible height ~8.6 units
-    // 65% of that ≈ 5.6 units → Y range ±2.8 → scale factor ~8
+    // Normalize face to always fill ~65vh regardless of camera distance.
+    // 1) Find bounding box of raw landmarks
+    // 2) Center and scale to a fixed scene-space size
     if (landmarks && landmarks.length === LANDMARK_COUNT) {
+      let minX = Infinity, maxX = -Infinity
+      let minY = Infinity, maxY = -Infinity
+      let minZ = Infinity, maxZ = -Infinity
       for (let i = 0; i < LANDMARK_COUNT; i++) {
         const [lx, ly, lz] = landmarks[i]
-        livePositions.current[i * 3 + 0] = (lx - 0.5) * 10     // X: wide, ±5
-        livePositions.current[i * 3 + 1] = -(ly - 0.5) * 8     // Y: tall, fills ~65vh
-        livePositions.current[i * 3 + 2] = -(lz ?? 0) * 4      // Z: NEGATE to fix concavity
+        if (lx < minX) minX = lx; if (lx > maxX) maxX = lx
+        if (ly < minY) minY = ly; if (ly > maxY) maxY = ly
+        const z = lz ?? 0
+        if (z < minZ) minZ = z; if (z > maxZ) maxZ = z
+      }
+
+      const cx = (minX + maxX) * 0.5
+      const cy = (minY + maxY) * 0.5
+      const cz = (minZ + maxZ) * 0.5
+      const spanX = maxX - minX || 0.001
+      const spanY = maxY - minY || 0.001
+      const spanZ = maxZ - minZ || 0.001
+      // Use the larger of X/Y span to maintain aspect ratio
+      const span = Math.max(spanX, spanY)
+
+      // Target size: ±4 Y (fills ~65vh at cam z=7, fov=65)
+      const TARGET_HALF = 4.0
+      const scale = (TARGET_HALF * 2) / span
+
+      for (let i = 0; i < LANDMARK_COUNT; i++) {
+        const [lx, ly, lz] = landmarks[i]
+        livePositions.current[i * 3 + 0] = -(lx - cx) * scale        // centered X, mirrored for natural feel
+        livePositions.current[i * 3 + 1] = -(ly - cy) * scale        // centered Y, flipped
+        livePositions.current[i * 3 + 2] = -((lz ?? 0) - cz) * scale * 0.5  // Z: negated, less depth exaggeration
       }
     }
 
