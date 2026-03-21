@@ -13,6 +13,7 @@ export default function App() {
   const [appState, setAppState]   = useState<AppState>('landing')
   const [engine, setEngine]       = useState<HarmonicEngine | null>(null)
   const [camStream, setCamStream] = useState<MediaStream | null>(null)
+  const [muted, setMuted]         = useState(false)
   const sceneWrap = useRef<HTMLDivElement>(null)
 
   const audioDataRef = useAudioData(engine)
@@ -61,6 +62,15 @@ export default function App() {
       },
     })
   }, [engine, camStream])
+
+  const handleToggleMute = useCallback(() => {
+    if (!engine) return
+    setMuted(m => {
+      if (m) engine.resume()
+      else engine.suspend()
+      return !m
+    })
+  }, [engine])
 
   useEffect(() => { engine?.resume() }, [engine])
   useEffect(() => () => { engine?.destroy() }, [engine])
@@ -153,7 +163,12 @@ export default function App() {
         </div>
       )}
 
-      <GhostUI appState={appState} onReturnToLanding={handleReturnToLanding} />
+      <GhostUI
+        appState={appState}
+        onReturnToLanding={handleReturnToLanding}
+        onToggleMute={handleToggleMute}
+        isMuted={muted}
+      />
     </div>
   )
 }

@@ -10,12 +10,12 @@ import type { HarmonicEngine } from '../audio/HarmonicEngine'
 import type { AudioData } from '../types'
 
 // How fast to follow audio changes (lower = smoother but more lag)
-const ALPHA = 0.10
+const ALPHA = 0.22
 
 const emptyAudio = (): AudioData => ({
   frequency: new Float32Array(0),
   waveform:  new Float32Array(0),
-  bass: 0, mid: 0, high: 0, rms: 0,
+  bass: 0, mid: 0, high: 0, rms: 0, micRms: 0,
 })
 
 export function useAudioData(engine: HarmonicEngine | null) {
@@ -25,7 +25,7 @@ export function useAudioData(engine: HarmonicEngine | null) {
   useEffect(() => {
     if (!engine) return
 
-    const smoothed = { bass: 0, mid: 0, high: 0, rms: 0 }
+    const smoothed = { bass: 0, mid: 0, high: 0, rms: 0, micRms: 0 }
 
     const tick = () => {
       const raw = engine.getAudioData()
@@ -36,6 +36,10 @@ export function useAudioData(engine: HarmonicEngine | null) {
       smoothed.high = smoothed.high + ALPHA * (raw.high - smoothed.high)
       smoothed.rms  = smoothed.rms  + ALPHA * (raw.rms  - smoothed.rms)
 
+      // Mic-only RMS — less smoothing for snappier response
+      const rawMicRms = engine.getMicRms()
+      smoothed.micRms = smoothed.micRms + 0.35 * (rawMicRms - smoothed.micRms)
+
       // Mutate in-place — no object allocation per frame
       const d = dataRef.current
       d.frequency = raw.frequency
@@ -44,6 +48,7 @@ export function useAudioData(engine: HarmonicEngine | null) {
       d.mid   = smoothed.mid
       d.high  = smoothed.high
       d.rms   = smoothed.rms
+      d.micRms = smoothed.micRms
 
       rafRef.current = requestAnimationFrame(tick)
     }

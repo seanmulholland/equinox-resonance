@@ -12,12 +12,15 @@ import type { AppState } from '../types'
 interface Props {
   appState: AppState
   onReturnToLanding: () => void
+  onToggleMute?: () => void
+  isMuted?: boolean
 }
 
-export function GhostUI({ appState, onReturnToLanding }: Props) {
+export function GhostUI({ appState, onReturnToLanding, onToggleMute, isMuted }: Props) {
   const uiRef = useRef<HTMLDivElement>(null)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [visible, setVisible] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(false)
 
   const show = useCallback(() => {
     if (!uiRef.current) return
@@ -44,34 +47,60 @@ export function GhostUI({ appState, onReturnToLanding }: Props) {
   if (appState === 'landing' || appState === 'requesting') return null
 
   return (
-    <div
-      ref={uiRef}
-      style={{ ...styles.wrapper, opacity: 0 }}
-    >
-      <div style={{ ...styles.topBar, pointerEvents: visible ? 'auto' : 'none' }}>
-        <span style={styles.logo}>&#10022; Equinox Resonance</span>
-        <button onClick={onReturnToLanding} style={styles.ghostBtn}>
-          &#8592; Return
-        </button>
-      </div>
+    <>
+      <div
+        ref={uiRef}
+        style={{ ...styles.wrapper, opacity: 0 }}
+      >
+        <div style={{ ...styles.topBar, pointerEvents: visible ? 'auto' : 'none' }}>
+          <span style={styles.logo}>&#10022; Equinox Resonance</span>
+          <div style={styles.btnGroup}>
+            <button onClick={onReturnToLanding} style={styles.ghostBtn}>
+              &#8592; Return
+            </button>
+            {onToggleMute && (
+              <button onClick={onToggleMute} style={styles.ghostBtn}>
+                {isMuted ? '\u{1F507} Unmute' : '\u{1F50A} Mute'}
+              </button>
+            )}
+            <button onClick={() => setAboutOpen(true)} style={styles.ghostBtn}>
+              About
+            </button>
+          </div>
+        </div>
 
-      <div style={styles.bottomBar}>
-        <span style={styles.hint}>
-          {appState === 'constellation'
-            ? 'your face \u2014 the constellation'
-            : 'sacred geometry \u2014 fallback mode'}
-        </span>
-        <span style={styles.hint}>drag to orbit &middot; equinox 2026</span>
-      </div>
-    </div>
+        </div>
+
+      {/* About modal */}
+      {aboutOpen && (
+        <div style={styles.modalOverlay} onClick={() => setAboutOpen(false)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <h2 style={styles.modalTitle}>About Equinox Resonance</h2>
+            <p style={styles.modalText}>
+              An interactive audio-visual experience for the spring equinox, built during the 2026 spring equinox on March 20, 2026.
+            </p>
+            <p style={styles.modalText}>
+              Grant microphone access to let your voice and environment affect the visuals.
+              Grant camera access to see your face rendered as a constellation of light.
+            </p>
+            <p style={styles.modalText}>
+              Built by <a href="http://seanmulholland.com" target="_blank">Sean Mulholland</a> with sacred geometry, 432 Hz tuning, and the Pacific sunset in California.
+            </p>
+            <button onClick={() => setAboutOpen(false)} style={styles.modalClose}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
 const glass: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.04)',
-  backdropFilter: 'blur(10px)',
-  WebkitBackdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'rgba(255, 255, 255, 0.12)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+  border: '1px solid rgba(255, 255, 255, 0.6)',
   borderRadius: 12,
 }
 
@@ -93,39 +122,79 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     padding: '10px 20px',
   },
+  btnGroup: {
+    display: 'flex',
+    gap: 8,
+  },
   logo: {
     fontSize: '0.85rem',
     letterSpacing: '0.2em',
-    color: 'rgba(255,240,200,0.6)',
-    fontFamily: 'Georgia, serif',
-    textShadow: '0 0 12px rgba(245,192,96,0.4)',
+    color: '#0d1f50',
+    fontFamily: "'Amarante', Georgia, serif",
+    textShadow: '0 0 8px rgba(245,192,96,0.6), 0 0 20px rgba(245,166,35,0.3)',
   },
   ghostBtn: {
     background: 'transparent',
-    border: '1px solid rgba(255,240,200,0.15)',
+    border: '1px solid rgba(255,255,255,0.6)',
     borderRadius: 20,
-    color: 'rgba(255,240,200,0.5)',
+    color: '#0d1f50',
     fontSize: '0.8rem',
     letterSpacing: '0.1em',
     padding: '6px 14px',
     cursor: 'pointer',
     outline: 'none',
-    fontFamily: 'Georgia, serif',
-    transition: 'color 0.2s, border-color 0.2s',
+    fontFamily: "'Amarante', Georgia, serif",
+    textShadow: '0 0 8px rgba(245,192,96,0.5)',
+    transition: 'color 0.2s, border-color 0.2s, background 0.2s',
   },
-  bottomBar: {
-    ...glass,
+  modalOverlay: {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(255,255,255,0.25)',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '8px 20px',
-    pointerEvents: 'none',
+    justifyContent: 'center',
+    zIndex: 100,
+    pointerEvents: 'auto',
   },
-  hint: {
-    fontSize: '0.7rem',
+  modal: {
+    background: 'rgba(255, 255, 255, 0.12)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255, 255, 255, 0.6)',
+    borderRadius: 16,
+    padding: '32px 36px',
+    maxWidth: 480,
+    width: '90%',
+    color: '#0d1f50',
+    fontFamily: "'Amarante', Georgia, serif",
+  },
+  modalTitle: {
+    fontSize: '1.2rem',
     letterSpacing: '0.15em',
-    color: 'rgba(255,240,200,0.35)',
-    fontFamily: 'Georgia, serif',
-    fontStyle: 'italic',
+    marginTop: 0,
+    marginBottom: 16,
+    color: '#0d1f50',
+    textShadow: '0 0 10px rgba(245,192,96,0.5), 0 0 24px rgba(245,166,35,0.25)',
+  },
+  modalText: {
+    fontSize: '0.9rem',
+    lineHeight: 1.6,
+    marginBottom: 12,
+    color: '#0d1f50',
+    textShadow: '0 0 6px rgba(245,192,96,0.3)',
+  },
+  modalClose: {
+    marginTop: 12,
+    background: 'transparent',
+    border: '1px solid rgba(255,255,255,0.6)',
+    borderRadius: 20,
+    color: '#0d1f50',
+    textShadow: '0 0 8px rgba(245,192,96,0.5)',
+    fontSize: '0.85rem',
+    padding: '8px 24px',
+    cursor: 'pointer',
+    outline: 'none',
+    fontFamily: "'Amarante', Georgia, serif",
   },
 }

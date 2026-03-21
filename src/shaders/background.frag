@@ -72,25 +72,25 @@ void main() {
   // Black base — screen blend makes this transparent, CSS sunset shows through
   vec3 effect = vec3(0.0);
 
-  // ── Emanating rings ──────────────────────────────────────────────
-  float ringSpeed = 0.9 + uBass * 1.2 + uAudioEnergy * 0.3;
+  // ── Emanating rings — boosted for screen-blend visibility ────────
+  float ringSpeed = 0.9 + uBass * 1.8 + uAudioEnergy * 0.5;
   float rings  = pow(sin(dist * 18.0 - uTime * ringSpeed) * 0.5 + 0.5, 6.0);
   float rings2 = pow(sin(dist * 30.0 - uTime * ringSpeed * 0.7 + uBass * 3.0) * 0.5 + 0.5, 10.0);
   vec3  ringCol = palette(fract(colorT + 0.3 + uMid * 0.2), palPhase);
-  float ringBright = 0.2 + uBass * 0.4 + uRms * 0.15;
-  effect += rings  * ringCol * ringBright * 0.4;
-  effect += rings2 * ringCol * ringBright * 0.22;
+  float ringBright = 0.35 + uBass * 0.8 + uRms * 0.4;
+  effect += rings  * ringCol * ringBright * 0.7;
+  effect += rings2 * ringCol * ringBright * 0.4;
 
   // ── Fractal noise tint ───────────────────────────────────────────
   float fractal = fbm(centered * 2.5 + uTime * 0.06) * 0.5 + 0.5;
   vec3  fracCol = palette(fractal + uTime * 0.03 + uMid * 0.15, palPhase);
-  effect += fracCol * fractal * (0.05 + uMid * 0.05 + uAudioEnergy * 0.04);
+  effect += fracCol * fractal * (0.10 + uMid * 0.12 + uAudioEnergy * 0.08);
 
   // ── Spiral arms ──────────────────────────────────────────────────
   float angle  = atan(centered.y, centered.x);
   float spiral = pow(sin(angle * 3.0 + log(dist * 8.0 + 0.01) * 4.0 - uTime * 0.4) * 0.5 + 0.5, 5.0);
   spiral *= (1.0 - smoothstep(0.0, 0.55, dist));
-  effect += spiral * palette(fract(colorT + 0.6), palPhase) * (0.12 + uBass * 0.18);
+  effect += spiral * palette(fract(colorT + 0.6), palPhase) * (0.25 + uBass * 0.35);
 
   gl_FragColor = vec4(effect, 1.0);
 }

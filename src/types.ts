@@ -7,4 +7,5 @@ export interface AudioData {
   mid: number       // 0–1
   high: number      // 0–1
   rms: number       // 0–1 overall intensity
+  micRms: number    // 0–1 mic-only intensity (no drone)
 }

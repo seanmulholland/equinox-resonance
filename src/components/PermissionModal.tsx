@@ -114,19 +114,19 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 300,
     letterSpacing: '0.12em',
     color: '#fff8e8',
-    fontFamily: 'Georgia, serif',
+    fontFamily: "'Amarante', Georgia, serif",
   },
   body: {
     fontSize: '0.95rem',
     lineHeight: 1.7,
     color: 'rgba(255,240,200,0.75)',
-    fontFamily: 'Georgia, serif',
+    fontFamily: "'Amarante', Georgia, serif",
   },
   sub: {
     fontSize: '0.75rem',
     color: 'rgba(255,240,200,0.4)',
     letterSpacing: '0.08em',
-    fontFamily: 'Georgia, serif',
+    fontFamily: "'Amarante', Georgia, serif",
   },
   btnRow: {
     display: 'flex',
@@ -148,7 +148,7 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 0 20px rgba(245,166,35,0.25)',
     textShadow: '0 0 10px rgba(255,220,100,0.6)',
     outline: 'none',
-    fontFamily: 'Georgia, serif',
+    fontFamily: "'Amarante', Georgia, serif",
     transition: 'background 0.2s',
   },
   denyBtn: {
@@ -161,7 +161,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 30,
     cursor: 'pointer',
     outline: 'none',
-    fontFamily: 'Georgia, serif',
+    fontFamily: "'Amarante', Georgia, serif",
     transition: 'color 0.2s',
   },
 }

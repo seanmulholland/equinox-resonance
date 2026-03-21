@@ -127,7 +127,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 'clamp(0.8rem, 1.3vw, 1rem)',
     letterSpacing: '0.25em',
     color: 'rgba(255,248,200,0.8)',
-    fontFamily: 'Georgia, serif',
+    fontFamily: "'Amarante', Georgia, serif",
     textShadow: '0 0 16px rgba(255,220,100,0.7)',
   },
   titleWrap: {
@@ -142,7 +142,7 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.25em',
     color: '#fff8e8',
     textShadow: '0 0 30px rgba(255,220,100,0.6), 0 0 60px rgba(200,150,50,0.3)',
-    fontFamily: 'Georgia, serif',
+    fontFamily: "'Amarante', Georgia, serif",
   },
   subtitle: {
     marginTop: 12,
@@ -150,7 +150,7 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.3em',
     color: 'rgba(255,240,200,0.7)',
     textTransform: 'lowercase',
-    fontFamily: 'Georgia, serif',
+    fontFamily: "'Amarante', Georgia, serif",
   },
   stars: {
     position: 'absolute',

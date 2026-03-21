@@ -20,6 +20,8 @@ interface Props {
 
 const LANDMARK_COUNT = 468
 const FALLBACK_COUNT = 2000
+const RING_INNER = 2.8
+const RING_OUTER = 3.3
 
 // Generate a random sacred geometry shape scaled for the scene
 function generateFallback(): Float32Array {
@@ -39,6 +41,9 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
   const faceMatRef  = useRef<THREE.ShaderMaterial>(null)
   const faceGeoRef  = useRef<THREE.BufferGeometry>(null)
   const haloRef     = useRef<THREE.Mesh>(null)
+  const haloGeoRef  = useRef<THREE.BufferGeometry>(null)
+  // Per-vertex angle + normalized position (0=inner, 1=outer), computed once on mount
+  const haloMeta    = useRef<{ angles: Float32Array, ts: Float32Array } | null>(null)
 
   const faceAlpha   = useRef(0)
   const shapeTimer  = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -63,6 +68,22 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
     }
     shapeTimer.current = setTimeout(cycle, 4000)
     return () => { if (shapeTimer.current) clearTimeout(shapeTimer.current) }
+  }, [])
+
+  // Capture ring vertex angles + inner/outer classification on mount
+  useEffect(() => {
+    if (!haloGeoRef.current) return
+    const pos = haloGeoRef.current.attributes.position as THREE.BufferAttribute
+    const count = pos.count
+    const angles = new Float32Array(count)
+    const ts = new Float32Array(count)
+    for (let i = 0; i < count; i++) {
+      const x = pos.getX(i), y = pos.getY(i)
+      angles[i] = Math.atan2(y, x)
+      const r = Math.sqrt(x * x + y * y)
+      ts[i] = Math.max(0, Math.min(1, (r - RING_INNER) / (RING_OUTER - RING_INNER)))
+    }
+    haloMeta.current = { angles, ts }
   }, [])
 
   // Fade face overlay in when constellation + landmarks available
@@ -126,14 +147,23 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
       faceMatRef.current.uniforms.uAlpha.value = faceAlpha.current
     }
 
-    // Halo: raw amplified signal — jittery is fine, must be obviously reactive
+    // Halo ring: manipulate vertex positions directly (same pattern as shape/face geometry)
+    // Inner radius contracts and outer radius expands with audio → ring gets wider
+    if (haloGeoRef.current && haloMeta.current) {
+      const { angles, ts } = haloMeta.current
+      // mic-only RMS — no drone contamination
+      const signal = Math.min(1.0, ad.micRms * 6.0)
+      const newInner = RING_INNER - signal * 0.3
+      const newOuter = RING_OUTER + signal * 1.0
+      const posAttr = haloGeoRef.current.attributes.position as THREE.BufferAttribute
+      for (let i = 0; i < posAttr.count; i++) {
+        const r = newInner + ts[i] * (newOuter - newInner)
+        posAttr.setXY(i, Math.cos(angles[i]) * r, Math.sin(angles[i]) * r)
+      }
+      posAttr.needsUpdate = true
+    }
     if (haloRef.current) {
-      const raw = Math.min(1.0, ad.bass * 4.0 + ad.rms * 1.5)
-      haloRef.current.scale.setScalar(1.0 + raw * 0.6)
       haloRef.current.rotation.z = t * 0.05
-      haloRef.current.position.y = faceCenterY.current
-      const mat = haloRef.current.material as THREE.MeshBasicMaterial
-      mat.opacity = 0.3 + raw * 0.7
     }
 
     // ── Shape geometry — always rotating sacred pattern ──
@@ -199,7 +229,7 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
     <group>
       {/* Pink/magenta halo ring — frames the face, scales with audio */}
       <mesh ref={haloRef} position={[0, 0, 0]}>
-        <ringGeometry args={[2.8, 3.3, 80]} />
+        <ringGeometry ref={haloGeoRef} args={[2.8, 3.3, 80]} />
         <meshBasicMaterial
           color={new THREE.Color(0xff44cc)}
           transparent

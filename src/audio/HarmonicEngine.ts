@@ -26,6 +26,8 @@ const SEQUENCE = [0, 2, 4, 2, 7, 4, 5, 2, 0, 4, 7, 5]
 export class HarmonicEngine {
   private ctx: AudioContext | null = null
   private analyser: AnalyserNode | null = null
+  private micAnalyser: AnalyserNode | null = null
+  private micWaveData: Float32Array<ArrayBuffer> = new Float32Array(0)
   private masterGain: GainNode | null = null
   private reverb: ConvolverNode | null = null
   private reverbGain: GainNode | null = null
@@ -80,13 +82,19 @@ export class HarmonicEngine {
     // Layer 2: Arpeggio
     this.scheduleArpeggio()
 
-    // Layer 3: Mic input analysis only (no echo)
+    // Layer 3: Mic input — separate analyser so we can isolate mic-only signal
     if (micStream) {
       const micSrc = this.ctx.createMediaStreamSource(micStream)
       const micGain = this.ctx.createGain()
       micGain.gain.value = 1
       micSrc.connect(micGain)
-      micGain.connect(this.analyser)
+      micGain.connect(this.analyser)          // mixed analyser (synth + mic)
+
+      this.micAnalyser = this.ctx.createAnalyser()
+      this.micAnalyser.fftSize = 2048
+      this.micAnalyser.smoothingTimeConstant = 0.5  // faster response for mic
+      this.micWaveData = new Float32Array(this.micAnalyser.fftSize) as Float32Array<ArrayBuffer>
+      micSrc.connect(this.micAnalyser)        // mic-only analyser
     }
 
     // Fade in gently — half volume, background drone
@@ -277,6 +285,14 @@ export class HarmonicEngine {
       high:  avg(4000, 20000),
       rms,
     }
+  }
+
+  getMicRms(): number {
+    if (!this.micAnalyser) return 0
+    this.micAnalyser.getFloatTimeDomainData(this.micWaveData)
+    let sum = 0
+    for (let i = 0; i < this.micWaveData.length; i++) sum += this.micWaveData[i] ** 2
+    return Math.sqrt(sum / this.micWaveData.length)
   }
 
   reactToInput(rms: number) {
