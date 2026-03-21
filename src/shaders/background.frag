@@ -74,8 +74,9 @@ void main() {
   float palPhase = uTime * 0.008 + audioPhaseShift;
   float colorT   = dist * 0.8 + uTime * 0.04 + uBass * 0.12 - uMid * 0.08;
 
-  // White base — multiply blend makes this transparent, cream BG shows through
-  vec3 effect = vec3(1.0);
+  // Alpha-transparent base — cream BG shows through where alpha is 0
+  vec3 effect = vec3(0.0);
+  float totalAlpha = 0.0;
 
   // ── Emanating rings — warm retro tones ────────────────────────────
   float ringSpeed = 0.9 + uBass * 1.8 + uAudioEnergy * 0.5;
@@ -83,23 +84,26 @@ void main() {
   float rings2 = pow(sin(dist * 30.0 - uTime * ringSpeed * 0.7 + uBass * 3.0) * 0.5 + 0.5, 10.0);
   vec3  ringCol = retroPalette(fract(colorT + 0.3 + uMid * 0.2), palPhase);
   float ringBright = 0.35 + uBass * 0.8 + uRms * 0.4;
-  // Multiply: subtract from white to tint
-  effect -= rings  * (1.0 - ringCol) * ringBright * 0.5;
-  effect -= rings2 * (1.0 - ringCol) * ringBright * 0.3;
+  float ringAlpha = (rings * 0.7 + rings2 * 0.4) * ringBright;
+  effect += ringCol * ringAlpha;
+  totalAlpha += ringAlpha;
 
   // ── Fractal noise tint ───────────────────────────────────────────
   float fractal = fbm(centered * 2.5 + uTime * 0.06) * 0.5 + 0.5;
   vec3  fracCol = retroPalette(fractal + uTime * 0.03 + uMid * 0.15, palPhase);
-  effect -= (1.0 - fracCol) * fractal * (0.08 + uMid * 0.10 + uAudioEnergy * 0.06);
+  float fracAlpha = fractal * (0.10 + uMid * 0.12 + uAudioEnergy * 0.08);
+  effect += fracCol * fracAlpha;
+  totalAlpha += fracAlpha;
 
   // ── Spiral arms ──────────────────────────────────────────────────
   float angle  = atan(centered.y, centered.x);
   float spiral = pow(sin(angle * 3.0 + log(dist * 8.0 + 0.01) * 4.0 - uTime * 0.4) * 0.5 + 0.5, 5.0);
   spiral *= (1.0 - smoothstep(0.0, 0.55, dist));
-  effect -= spiral * (1.0 - retroPalette(fract(colorT + 0.6), palPhase)) * (0.20 + uBass * 0.30);
+  float spiralAlpha = spiral * (0.25 + uBass * 0.35);
+  effect += retroPalette(fract(colorT + 0.6), palPhase) * spiralAlpha;
+  totalAlpha += spiralAlpha;
 
-  // Clamp to valid range
-  effect = clamp(effect, 0.0, 1.0);
-
-  gl_FragColor = vec4(effect, 1.0);
+  // Premultiplied alpha output
+  totalAlpha = clamp(totalAlpha, 0.0, 1.0);
+  gl_FragColor = vec4(effect, totalAlpha);
 }

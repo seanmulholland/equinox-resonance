@@ -9,6 +9,56 @@ import { useAudioData } from './hooks/useAudioData'
 import { useFaceMesh } from './hooks/useFaceMesh'
 import type { AppState } from './types'
 
+const SWATCH_COLORS = ['#D44A3A','#C47228','#D4A843','#4A7A3D','#5B8EC2','#C45B28','#D44A3A']
+const SZ = 18
+const GAP = 16
+const PAD = 20
+
+const swatch = (bg: string, x: number, y: number): React.CSSProperties => ({
+  position: 'absolute', left: x, top: y,
+  width: SZ, height: SZ, borderRadius: 3, opacity: 0.7, background: bg,
+})
+
+function CornerSwatches() {
+  // Each corner: corner swatch at the corner point, 2 more along X, 2 more along Y
+  // Colors rotate per corner so each gets a different slice of the 7
+  const step = SZ + GAP // 34px between swatch centers
+  const corners: Array<{ bx: number; by: number; dx: 1 | -1; dy: 1 | -1; colorOff: number }> = []
+
+  // We'll compute positions in render using viewport-relative positioning via CSS
+  return (
+    <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 3 }}>
+      {/* Top-left */}
+      <div style={swatch(SWATCH_COLORS[0], PAD, PAD)} />
+      <div style={swatch(SWATCH_COLORS[1], PAD + step, PAD)} />
+      <div style={swatch(SWATCH_COLORS[2], PAD + step * 2, PAD)} />
+      <div style={swatch(SWATCH_COLORS[3], PAD, PAD + step)} />
+      <div style={swatch(SWATCH_COLORS[4], PAD, PAD + step * 2)} />
+
+      {/* Top-right */}
+      <div style={{ ...swatch(SWATCH_COLORS[2], 0, PAD), right: PAD, left: 'auto' }} />
+      <div style={{ ...swatch(SWATCH_COLORS[3], 0, PAD), right: PAD + step, left: 'auto' }} />
+      <div style={{ ...swatch(SWATCH_COLORS[4], 0, PAD), right: PAD + step * 2, left: 'auto' }} />
+      <div style={{ ...swatch(SWATCH_COLORS[5], 0, PAD + step), right: PAD, left: 'auto' }} />
+      <div style={{ ...swatch(SWATCH_COLORS[6], 0, PAD + step * 2), right: PAD, left: 'auto' }} />
+
+      {/* Bottom-left */}
+      <div style={{ ...swatch(SWATCH_COLORS[4], PAD, 0), bottom: PAD, top: 'auto' }} />
+      <div style={{ ...swatch(SWATCH_COLORS[5], PAD + step, 0), bottom: PAD, top: 'auto' }} />
+      <div style={{ ...swatch(SWATCH_COLORS[6], PAD + step * 2, 0), bottom: PAD, top: 'auto' }} />
+      <div style={{ ...swatch(SWATCH_COLORS[0], PAD, 0), bottom: PAD + step, top: 'auto' }} />
+      <div style={{ ...swatch(SWATCH_COLORS[1], PAD, 0), bottom: PAD + step * 2, top: 'auto' }} />
+
+      {/* Bottom-right */}
+      <div style={{ ...swatch(SWATCH_COLORS[6], 0, 0), right: PAD, left: 'auto', bottom: PAD, top: 'auto' }} />
+      <div style={{ ...swatch(SWATCH_COLORS[0], 0, 0), right: PAD + step, left: 'auto', bottom: PAD, top: 'auto' }} />
+      <div style={{ ...swatch(SWATCH_COLORS[1], 0, 0), right: PAD + step * 2, left: 'auto', bottom: PAD, top: 'auto' }} />
+      <div style={{ ...swatch(SWATCH_COLORS[2], 0, 0), right: PAD, left: 'auto', bottom: PAD + step, top: 'auto' }} />
+      <div style={{ ...swatch(SWATCH_COLORS[3], 0, 0), right: PAD, left: 'auto', bottom: PAD + step * 2, top: 'auto' }} />
+    </div>
+  )
+}
+
 export default function App() {
   const [appState, setAppState]   = useState<AppState>('landing')
   const [engine, setEngine]       = useState<HarmonicEngine | null>(null)
@@ -109,10 +159,9 @@ export default function App() {
         pointerEvents: 'none',
       }} />
 
-      {/* Canvas — multiply blend so colours darken the cream base */}
+      {/* Canvas — alpha-transparent, effects overlay directly on cream base */}
       <div ref={sceneWrap} style={{
         position: 'absolute', inset: 0, opacity: 0, zIndex: 1,
-        mixBlendMode: 'multiply',
       }}>
         <Scene audioDataRef={audioDataRef} landmarks={landmarks} appState={appState} />
       </div>
@@ -159,6 +208,9 @@ export default function App() {
           <PermissionModal onGrant={handleGrant} onDeny={handleDeny} />
         </div>
       )}
+
+      {/* Corner color swatches — visible during viz mode */}
+      {(appState === 'constellation' || appState === 'fallback') && <CornerSwatches />}
 
       <GhostUI
         appState={appState}

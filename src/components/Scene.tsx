@@ -130,9 +130,9 @@ export function Scene({ audioDataRef, landmarks, appState }: Props) {
   return (
     <Canvas
       camera={{ position: [0, 1.5, 7], fov: 65, near: 0.1, far: 200 }}
-      gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
+      gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
       dpr={[1, 1.5]}
-      style={{ background: '#FFFFFF' }}
+      style={{ background: 'transparent' }}
     >
       <Suspense fallback={null}>
         <SceneInner audioDataRef={audioDataRef} landmarks={landmarks} appState={appState} />

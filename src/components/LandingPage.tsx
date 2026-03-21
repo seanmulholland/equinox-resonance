@@ -49,7 +49,7 @@ export function LandingPage({ onEnter }: Props) {
         </div>
       </div>
 
-      {/* Sun orb — centered in the portal, clickable */}
+      {/* Click target over the persistent sun — no duplicate orb */}
       <button
         ref={btnRef}
         onClick={onEnter}
@@ -61,7 +61,6 @@ export function LandingPage({ onEnter }: Props) {
           gsap.to(e.currentTarget, { scale: 1.0, duration: 0.4, ease: 'power2.out' })
         }}
       >
-        <div style={styles.sunOrb} />
         <span style={styles.sunLabel}>Enter the Resonance</span>
       </button>
 
@@ -164,11 +163,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   sunButton: {
     position: 'absolute',
-    top: 'calc(50% - 80px)',
+    top: 'calc(50% + 70px)',
     left: '50%',
     transform: 'translateX(-50%)',
-    width: 160,
-    height: 160,
     border: 'none',
     background: 'transparent',
     cursor: 'pointer',
@@ -176,16 +173,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
-    justifyContent: 'center',
     zIndex: 10,
-    padding: 0,
-  },
-  sunOrb: {
-    width: 120,
-    height: 120,
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, #FFE066 0%, #D4A843 35%, #C45B28 65%, rgba(196,91,40,0.2) 85%, transparent 100%)',
-    boxShadow: '0 0 60px 30px rgba(212,168,67,0.3), 0 0 100px 50px rgba(196,91,40,0.12)',
+    padding: '8px 24px',
   },
   sunLabel: {
     marginTop: 16,

@@ -68,6 +68,7 @@ export function FractalBackground({ audioDataRef }: Props) {
         vertexShader={backgroundVert}
         fragmentShader={backgroundFrag}
         uniforms={uniforms}
+        transparent
         depthWrite={false}
         depthTest={false}
       />
