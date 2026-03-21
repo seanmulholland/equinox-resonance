@@ -66,34 +66,55 @@ export default function App() {
   useEffect(() => () => { engine?.destroy() }, [engine])
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#02040f' }}>
-      <div ref={sceneWrap} style={{ position: 'absolute', inset: 0, opacity: 0, zIndex: 1 }}>
+    <div style={{ position: 'fixed', inset: 0 }}>
+      {/* Persistent sunset background — exact same as landing page */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: `linear-gradient(
+          to top,
+          #05091f 0%,
+          #0d1f50 18%,
+          #14388c 32%,
+          #c05878 50%,
+          #f29a3e 62%,
+          #74a8db 80%,
+          #b4cbef 100%
+        )`,
+      }} />
+      {/* Horizon glow line */}
+      <div style={{
+        position: 'absolute', top: '52%', left: 0, right: 0,
+        height: '2px',
+        background: 'linear-gradient(to right, transparent, #f5c060, #fff8e1, #f5c060, transparent)',
+        opacity: 0.6,
+        boxShadow: '0 0 40px 12px rgba(245,192,96,0.4)',
+        pointerEvents: 'none',
+      }} />
+      {/* Stars */}
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        backgroundImage: `
+          radial-gradient(1px 1px at 15% 12%, rgba(255,255,255,0.9) 0%, transparent 100%),
+          radial-gradient(1px 1px at 35% 8%, rgba(255,255,255,0.7) 0%, transparent 100%),
+          radial-gradient(1.5px 1.5px at 55% 5%, rgba(255,255,255,0.8) 0%, transparent 100%),
+          radial-gradient(1px 1px at 72% 10%, rgba(255,255,255,0.6) 0%, transparent 100%),
+          radial-gradient(1px 1px at 88% 7%, rgba(255,255,255,0.9) 0%, transparent 100%),
+          radial-gradient(1px 1px at 8% 22%, rgba(255,255,255,0.5) 0%, transparent 100%),
+          radial-gradient(1px 1px at 92% 18%, rgba(255,255,255,0.7) 0%, transparent 100%),
+          radial-gradient(1px 1px at 25% 3%, rgba(255,255,255,0.8) 0%, transparent 100%),
+          radial-gradient(1px 1px at 65% 2%, rgba(255,255,255,0.6) 0%, transparent 100%)
+        `,
+        opacity: 0.8,
+      }} />
+
+      {/* Transparent canvas — particles float over the CSS sunset.
+          mask-image fades edges to prevent hard WebGL canvas border. */}
+      <div ref={sceneWrap} style={{
+        position: 'absolute', inset: 0, opacity: 0, zIndex: 1,
+        WebkitMaskImage: 'radial-gradient(ellipse 88% 88% at 50% 50%, black 55%, transparent 100%)',
+        maskImage: 'radial-gradient(ellipse 88% 88% at 50% 50%, black 55%, transparent 100%)',
+      }}>
         <Scene audioDataRef={audioDataRef} landmarks={landmarks} appState={appState} />
-        {/* Vignette overlay — sits ON TOP of canvas + bloom, masks edge bleed */}
-        {/* Radial gradient: transparent center → sunset-colored edges */}
-        <div style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: `radial-gradient(
-            ellipse 70% 60% at 50% 50%,
-            transparent 0%,
-            transparent 30%,
-            rgba(5, 9, 31, 0.3) 50%,
-            rgba(5, 9, 31, 0.6) 65%,
-            rgba(5, 9, 31, 0.85) 80%,
-            rgba(2, 4, 15, 0.95) 100%
-          )`,
-        }} />
-        {/* Top-to-bottom gradient to reinforce dark bottom / lighter top */}
-        <div style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: `linear-gradient(
-            to bottom,
-            rgba(5, 9, 31, 0.0) 0%,
-            rgba(5, 9, 31, 0.0) 40%,
-            rgba(5, 9, 31, 0.4) 70%,
-            rgba(2, 4, 15, 0.7) 100%
-          )`,
-        }} />
       </div>
 
       {/* Video element for MediaPipe — must be in DOM and renderable (not display:none) */}

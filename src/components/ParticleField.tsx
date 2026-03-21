@@ -25,8 +25,9 @@ export function ParticleField({ audioDataRef, positions }: Props) {
     uBass:              { value: 0 },
     uMid:               { value: 0 },
     uRms:               { value: 0 },
-    uSize:              { value: 2.5 },
+    uSize:              { value: 4.5 },
     uConstellationMode: { value: 0.0 },
+    uAlpha:             { value: 1.0 },
   }), [])
 
   useFrame(({ clock }) => {

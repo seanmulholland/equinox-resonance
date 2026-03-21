@@ -46,7 +46,9 @@ export class HarmonicEngine {
   async init(micStream?: MediaStream) {
     this.ctx = new AudioContext()
 
-    // Master chain: dry → master → analyser → destination
+    // Master chain: dry → master → destination (synth output)
+    //               master → analyser (analysis tap, NOT connected to destination)
+    // Mic connects to analyser only — no path to destination = no feedback
     this.masterGain = this.ctx.createGain()
     this.masterGain.gain.setValueAtTime(0, this.ctx.currentTime)
 
@@ -56,8 +58,8 @@ export class HarmonicEngine {
     this.freqData = new Float32Array(this.analyser.frequencyBinCount) as Float32Array<ArrayBuffer>
     this.waveData = new Float32Array(this.analyser.fftSize) as Float32Array<ArrayBuffer>
 
-    this.masterGain.connect(this.analyser)
-    this.analyser.connect(this.ctx.destination)
+    this.masterGain.connect(this.ctx.destination)  // synth → speakers
+    this.masterGain.connect(this.analyser)          // synth → analysis tap (dead end)
 
     // Reverb — synthesize an impulse response (exponential decay noise)
     this.reverb = this.ctx.createConvolver()

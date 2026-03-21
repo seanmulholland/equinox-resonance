@@ -1,12 +1,12 @@
-// Fractal background — emanating rings + morphing color palettes
-// Audio-reactive: bass drives ring pulse, rms drives brightness
-// Optimized: 2-octave fBm, fewer palette calls
+// Ambient effect layer — rings, fractal, spiral additive over the CSS sunset.
+// No base sky color here; that comes from CSS behind the transparent canvas.
+// Audio-reactive: bass drives ring pulse, rms drives brightness.
 
 uniform float uTime;
 uniform float uBass;
 uniform float uMid;
 uniform float uRms;
-uniform float uAudioEnergy;  // sustained energy accumulator — keeps phasing alive
+uniform float uAudioEnergy;
 varying vec2 vUv;
 
 // ── Noise ────────────────────────────────────────────────────────────
@@ -36,7 +36,6 @@ float snoise2(vec2 v) {
   return 130.*dot(m,g);
 }
 
-// fBm — 2 octaves
 float fbm(vec2 p) {
   float v = 0.;
   v += 0.5 * snoise2(p);
@@ -82,75 +81,38 @@ void main() {
   vec2 centered = uv - .5;
   float dist = length(centered);
 
-  // Palette phase — starts on Pacific Sunset, slow drift + audio shifts
+  // Fade entirely toward edges — no hard canvas border
+  float edgeFade = 1.0 - smoothstep(0.3, 0.5, dist);
+  if (edgeFade <= 0.0) { gl_FragColor = vec4(0.0); return; }
+
   float audioPhaseShift = uBass * 0.6 + uRms * 0.3 + uAudioEnergy * 0.4;
   float palPhase = uTime * 0.008 + audioPhaseShift;
-
-  // Pacific sunset gradient — matches the landing page
-  vec3 sky0 = vec3(0.012, 0.014, 0.047);  // deep navy (bottom)
-  vec3 sky1 = vec3(0.031, 0.047, 0.12);   // dark blue
-  vec3 sky2 = vec3(0.047, 0.13, 0.33);    // medium blue
-  vec3 sky3 = vec3(0.45, 0.21, 0.28);     // coral pink (horizon)
-  vec3 sky4 = vec3(0.57, 0.36, 0.15);     // warm orange
-  vec3 sky5 = vec3(0.27, 0.39, 0.51);     // soft blue
-  vec3 sky6 = vec3(0.42, 0.48, 0.56);     // pale blue (top)
-
-  float y = uv.y;
-  vec3 skyGrad = mix(sky0, sky1, smoothstep(0.0, 0.18, y));
-  skyGrad = mix(skyGrad, sky2, smoothstep(0.18, 0.32, y));
-  skyGrad = mix(skyGrad, sky3, smoothstep(0.32, 0.50, y));
-  skyGrad = mix(skyGrad, sky4, smoothstep(0.50, 0.62, y));
-  skyGrad = mix(skyGrad, sky5, smoothstep(0.62, 0.80, y));
-  skyGrad = mix(skyGrad, sky6, smoothstep(0.80, 1.0, y));
-
-  // Palette tints the gradient
-  float centerGlow = 1.0 - smoothstep(0.0, 0.7, dist);
   float colorT = dist * 0.8 + uTime * 0.04 + uBass * 0.12 - uMid * 0.08;
-  vec3 palColor = palette(colorT, palPhase);
 
-  float palStr = centerGlow * 0.15 + 0.02 + uRms * 0.03;
-  vec3 baseColor = skyGrad * (1.0 + palColor * palStr);
+  vec3 effect = vec3(0.0);
 
   // ── Emanating rings ─────────────────────────────────────────────
-  float ringSpeed  = 0.9 + uBass * 1.2 + uAudioEnergy * 0.3;
-  float ringPhase  = dist * 18.0 - uTime * ringSpeed;
-  float rings      = sin(ringPhase) * 0.5 + 0.5;
-  rings = pow(rings, 6.0);
+  float ringSpeed = 0.9 + uBass * 1.2 + uAudioEnergy * 0.3;
+  float rings  = pow(sin(dist * 18.0 - uTime * ringSpeed) * 0.5 + 0.5, 6.0);
+  float rings2 = pow(sin(dist * 30.0 - uTime * ringSpeed * 0.7 + uBass * 3.0) * 0.5 + 0.5, 10.0);
 
-  float rings2     = sin(dist * 30.0 - uTime * ringSpeed * 0.7 + uBass * 3.0) * 0.5 + 0.5;
-  rings2 = pow(rings2, 10.0);
+  vec3 ringColor = palette(fract(colorT + 0.3 + uMid * 0.2), palPhase);
+  float ringBright = 0.25 + uBass * 0.4 + uRms * 0.15;
+  effect += rings  * ringColor * ringBright * 0.5;
+  effect += rings2 * ringColor * ringBright * 0.25;
 
-  float ringT = fract(colorT + 0.3 + uMid * 0.2);
-  vec3 ringColor = palette(ringT, palPhase);
-
-  float ringBrightness = 0.6 + uBass * 0.8 + uRms * 0.3;
-  baseColor += rings  * ringColor * ringBrightness * 0.7;
-  baseColor += rings2 * ringColor * ringBrightness * 0.4;
-
-  // ── Fractal noise overlay ────────────────────────────────────────
-  float noiseSpeed = 0.06;
-  float n1 = fbm(centered * 2.5 + uTime * noiseSpeed);
-  float fractal = n1 * 0.5 + 0.5;
-
-  float fractalT = fractal + uTime * 0.03 + uMid * 0.15;
-  vec3 fractalColor = palette(fractalT, palPhase);
-
-  float fractalIntensity = 0.12 + uMid * 0.1 + uAudioEnergy * 0.08;
-  baseColor += fractalColor * fractal * fractalIntensity;
+  // ── Fractal noise ────────────────────────────────────────────────
+  float fractal = fbm(centered * 2.5 + uTime * 0.06) * 0.5 + 0.5;
+  vec3 fractalColor = palette(fractal + uTime * 0.03 + uMid * 0.15, palPhase);
+  effect += fractalColor * fractal * (0.06 + uMid * 0.05 + uAudioEnergy * 0.04);
 
   // ── Spiral arms ─────────────────────────────────────────────────
   float angle = atan(centered.y, centered.x);
-  float spiral = sin(angle * 3.0 + log(dist * 8.0 + 0.01) * 4.0 - uTime * 0.4) * 0.5 + 0.5;
+  float spiral = pow(sin(angle * 3.0 + log(dist * 8.0 + 0.01) * 4.0 - uTime * 0.4) * 0.5 + 0.5, 5.0);
   spiral *= (1.0 - smoothstep(0.0, 0.55, dist));
-  spiral = pow(spiral, 5.0);
-  baseColor += spiral * palette(fract(colorT + 0.6), palPhase) * (0.3 + uBass * 0.25);
+  effect += spiral * palette(fract(colorT + 0.6), palPhase) * (0.15 + uBass * 0.18);
 
-  // ── Edge vignette ────────────────────────────────────────────────
-  float vignette = 1.0 - smoothstep(0.3, 0.8, dist);
-  baseColor *= vignette;
+  effect *= edgeFade;
 
-  // Global brightness from RMS
-  baseColor *= 1.0 + uRms * 0.4;
-
-  gl_FragColor = vec4(baseColor, 1.0);
+  gl_FragColor = vec4(effect, 1.0);
 }

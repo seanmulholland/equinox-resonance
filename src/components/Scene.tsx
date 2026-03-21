@@ -1,12 +1,10 @@
-import { Suspense, useMemo, useRef, useState, useEffect, useCallback } from 'react'
+import { Suspense, useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { EffectComposer, Bloom, ToneMapping } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
 import { FractalBackground } from './FractalBackground'
-import { ParticleField } from './ParticleField'
 import { AvatarConstellation } from './AvatarConstellation'
-import { fermatSpiral } from '../geometry/sacredGeometry'
 import type { AudioData, AppState } from '../types'
 
 interface Props {
@@ -93,23 +91,11 @@ function SceneInner({ audioDataRef, landmarks, appState }: Props) {
     }
   }, [])
 
-  const bgPositions = useMemo(() => fermatSpiral(3000), [])
-  const bgScaled = useMemo(() => {
-    const out = new Float32Array(bgPositions.length)
-    for (let i = 0; i < bgPositions.length; i += 3) {
-      out[i + 0] = bgPositions[i + 0] * 12
-      out[i + 1] = bgPositions[i + 1] * 4
-      out[i + 2] = bgPositions[i + 2] * 5
-    }
-    return out
-  }, [bgPositions])
-
   const mode = appState === 'constellation' ? 'constellation' : 'fallback'
 
   return (
     <>
       <FractalBackground audioDataRef={audioDataRef} />
-      <ParticleField     audioDataRef={audioDataRef} positions={bgScaled} />
       <group position={[0, 0, 0]}>
         <AvatarConstellation
           audioDataRef={audioDataRef}
@@ -133,7 +119,7 @@ function SceneInner({ audioDataRef, landmarks, appState }: Props) {
       />
       <CameraOrbit enabled={!dragging} />
       <EffectComposer>
-        <Bloom intensity={0.4} luminanceThreshold={0.6} luminanceSmoothing={0.9} mipmapBlur />
+        <Bloom intensity={0.2} luminanceThreshold={0.75} luminanceSmoothing={0.6} mipmapBlur />
         <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       </EffectComposer>
     </>
@@ -144,9 +130,9 @@ export function Scene({ audioDataRef, landmarks, appState }: Props) {
   return (
     <Canvas
       camera={{ position: [0, 1.5, 7], fov: 65, near: 0.1, far: 200 }}
-      gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
+      gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
       dpr={[1, 1.5]}
-      style={{ background: '#02040f' }}
+      style={{ background: 'transparent' }}
     >
       <Suspense fallback={null}>
         <SceneInner audioDataRef={audioDataRef} landmarks={landmarks} appState={appState} />
