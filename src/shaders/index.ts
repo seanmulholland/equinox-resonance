@@ -1,0 +1,6 @@
+export { default as particlesVert } from './particles.vert?raw'
+export { default as particlesFrag } from './particles.frag?raw'
+export { default as landingVert }   from './landing.vert?raw'
+export { default as landingFrag }   from './landing.frag?raw'
+export { default as backgroundVert } from './background.vert?raw'
+export { default as backgroundFrag } from './background.frag?raw'
