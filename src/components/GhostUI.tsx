@@ -130,7 +130,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '0.85rem',
     letterSpacing: '0.2em',
     color: '#4A3A1E',
-    fontFamily: "'Coiny', Georgia, serif",
+    fontFamily: "'Akaya Kanadaka', Georgia, serif",
     textShadow: '0 0 6px rgba(212,168,67,0.3)',
   },
   ghostBtn: {
@@ -143,7 +143,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '6px 14px',
     cursor: 'pointer',
     outline: 'none',
-    fontFamily: "'Coiny', Georgia, serif",
+    fontFamily: "'Akaya Kanadaka', Georgia, serif",
     textShadow: '0 0 6px rgba(212,168,67,0.25)',
     transition: 'color 0.2s, border-color 0.2s, background 0.2s',
   },
@@ -167,7 +167,7 @@ const styles: Record<string, React.CSSProperties> = {
     maxWidth: 480,
     width: '90%',
     color: '#4A3A1E',
-    fontFamily: "'Coiny', Georgia, serif",
+    fontFamily: "'Akaya Kanadaka', Georgia, serif",
   },
   modalTitle: {
     fontSize: '1.2rem',
@@ -194,6 +194,6 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '8px 24px',
     cursor: 'pointer',
     outline: 'none',
-    fontFamily: "'Coiny', Georgia, serif",
+    fontFamily: "'Akaya Kanadaka', Georgia, serif",
   },
 }

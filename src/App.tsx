@@ -146,7 +146,7 @@ export default function App() {
         background: 'radial-gradient(ellipse at center, transparent 30%, rgba(180,150,100,0.15) 70%, rgba(120,90,50,0.3) 100%)',
       }} />
 
-      {/* Persistent sun orb — warmer, more saturated like the album art */}
+      {/* Persistent sun orb — always visible, above grid but below overlays */}
       <div style={{
         position: 'absolute',
         top: 'calc(50% - 60px)',
@@ -157,11 +157,14 @@ export default function App() {
         background: 'radial-gradient(circle, #FFE066 0%, #D4A843 35%, #C45B28 65%, rgba(196,91,40,0.2) 85%, transparent 100%)',
         boxShadow: '0 0 50px 30px rgba(212,168,67,0.35), 0 0 100px 50px rgba(196,91,40,0.15)',
         pointerEvents: 'none',
+        zIndex: 2,
       }} />
 
-      {/* Canvas — alpha-transparent, effects overlay directly on cream base */}
+      {/* Canvas — alpha-transparent, masked to fade corners to cream */}
       <div ref={sceneWrap} style={{
         position: 'absolute', inset: 0, opacity: 0, zIndex: 1,
+        WebkitMaskImage: 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 100%)',
+        maskImage: 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 100%)',
       }}>
         <Scene audioDataRef={audioDataRef} landmarks={landmarks} appState={appState} />
       </div>

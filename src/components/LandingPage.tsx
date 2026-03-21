@@ -38,10 +38,7 @@ export function LandingPage({ onEnter }: Props) {
 
       {/* Rainbow ring portal — the central focus */}
       <div style={styles.rainbowRing}>
-        <div style={styles.innerCircle}>
-          {/* Sky blue center like the album art */}
-          <div style={styles.skyCenter} />
-        </div>
+        <div style={styles.innerCircle} />
       </div>
 
       {/* Click target over the persistent sun — no duplicate orb */}
@@ -123,21 +120,8 @@ const styles: Record<string, React.CSSProperties> = {
     height: '100%',
     borderRadius: '50%',
     overflow: 'hidden',
-    background: '#F5F0E1',
-    border: '3px solid rgba(180,160,120,0.3)',
-  },
-  skyCenter: {
-    width: '100%',
-    height: '100%',
-    background: `linear-gradient(
-      to top,
-      #4A7A3D 0%,
-      #6BA352 15%,
-      #7CB8D4 40%,
-      #5B8EC2 70%,
-      #F5F0E1 100%
-    )`,
-    opacity: 0.15,
+    background: 'transparent',
+    border: '3px solid rgba(180,160,120,0.15)',
   },
   sunButton: {
     position: 'absolute',
@@ -159,7 +143,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 'clamp(0.8rem, 1.3vw, 1rem)',
     letterSpacing: '0.25em',
     color: '#6B5B3A',
-    fontFamily: "'Coiny', Georgia, serif",
+    fontFamily: "'Akaya Kanadaka', Georgia, serif",
     textShadow: '0 0 12px rgba(212,168,67,0.4)',
   },
   titleWrap: {
@@ -174,7 +158,7 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.25em',
     color: '#4A3A1E',
     textShadow: '0 0 20px rgba(212,168,67,0.35)',
-    fontFamily: "'Coiny', Georgia, serif",
+    fontFamily: "'Akaya Kanadaka', Georgia, serif",
   },
   subtitle: {
     marginTop: 12,
@@ -182,6 +166,6 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.3em',
     color: '#8B7B5A',
     textTransform: 'lowercase',
-    fontFamily: "'Coiny', Georgia, serif",
+    fontFamily: "'Akaya Kanadaka', Georgia, serif",
   },
 }
