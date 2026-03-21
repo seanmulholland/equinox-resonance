@@ -16,6 +16,7 @@ export function LandingPage({ onEnter }: Props) {
   const btnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
+    if (!containerRef.current || !btnRef.current) return
     const tl = gsap.timeline()
     tl.fromTo(containerRef.current, { opacity: 0 }, { opacity: 1, duration: 1.5, ease: 'power2.inOut' })
     tl.fromTo(btnRef.current,

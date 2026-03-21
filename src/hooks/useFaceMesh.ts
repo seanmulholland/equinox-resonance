@@ -25,7 +25,13 @@ export function useFaceMesh(camStream: MediaStream | null): FaceMeshHook {
     let active = true
 
     async function setup() {
-      const { FaceMesh } = await import('@mediapipe/face_mesh')
+      // CJS module — dynamic import puts exports on .default in Vite
+      const mod = await import('@mediapipe/face_mesh')
+      const FaceMesh = (mod as any).FaceMesh ?? (mod as any).default?.FaceMesh
+      if (!FaceMesh) {
+        console.error('useFaceMesh: FaceMesh constructor not found in module', Object.keys(mod))
+        return
+      }
       if (!active) return
 
       const faceMesh = new FaceMesh({
