@@ -28,8 +28,13 @@ function CameraOrbit({ enabled }: { enabled: boolean }) {
   const azOffset = useRef(0)
   const polOffset = useRef(0)
 
+  const startTime = useRef<number | null>(null)
+
   useFrame(({ clock }) => {
-    const t = clock.getElapsedTime()
+    const elapsed = clock.getElapsedTime()
+    // Delay wander start so camera begins centered
+    if (startTime.current === null) startTime.current = elapsed
+    const t = Math.max(0, elapsed - startTime.current - 3)
 
     // Lissajous base values — fills ±60° (π/3 ≈ 1.047) organically
     const baseAz = Math.sin(t * BASE_SPEED) * 0.75
