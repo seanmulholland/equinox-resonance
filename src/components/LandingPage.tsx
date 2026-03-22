@@ -120,8 +120,8 @@ const styles: Record<string, React.CSSProperties> = {
     height: '100%',
     borderRadius: '50%',
     overflow: 'hidden',
-    background: 'transparent',
-    border: '3px solid rgba(180,160,120,0.15)',
+    background: '#F5F0E1',
+    border: '3px solid rgba(180,160,120,0.3)',
   },
   sunButton: {
     position: 'absolute',
@@ -157,8 +157,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 400,
     letterSpacing: '0.25em',
     color: '#4A3A1E',
-    textShadow: '0 0 20px rgba(212,168,67,0.35)',
-    fontFamily: "'Akaya Kanadaka', Georgia, serif",
+    textShadow: '0 0 15px rgba(212,168,67,0.7), 0 0 40px rgba(212,168,67,0.5), 0 0 80px rgba(196,91,40,0.3)',
+    fontFamily: "'Sankofa Display', Georgia, serif",
   },
   subtitle: {
     marginTop: 12,

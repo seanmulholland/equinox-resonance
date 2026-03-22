@@ -157,7 +157,7 @@ export default function App() {
         background: 'radial-gradient(circle, #FFE066 0%, #D4A843 35%, #C45B28 65%, rgba(196,91,40,0.2) 85%, transparent 100%)',
         boxShadow: '0 0 50px 30px rgba(212,168,67,0.35), 0 0 100px 50px rgba(196,91,40,0.15)',
         pointerEvents: 'none',
-        zIndex: 2,
+        zIndex: (appState === 'landing' || appState === 'requesting') ? 12 : 0,
       }} />
 
       {/* Canvas — alpha-transparent, masked to fade corners to cream */}
@@ -169,25 +169,24 @@ export default function App() {
         <Scene audioDataRef={audioDataRef} landmarks={landmarks} appState={appState} />
       </div>
 
-      {/* Invisible click target over the sun — only active during viz */}
-      {(appState === 'constellation' || appState === 'fallback') && (
-        <button
-          onClick={handleReturnToLanding}
-          title="Return to home"
-          style={{
-            position: 'absolute',
-            top: 'calc(50% - 60px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 120, height: 120,
-            borderRadius: '50%',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            zIndex: 5,
-          }}
-        />
-      )}
+      {/* Clickable sun target — enter on landing, return on viz */}
+      <button
+        onClick={appState === 'landing' ? handleEnter : handleReturnToLanding}
+        title={appState === 'landing' ? 'Enter the Resonance' : 'Return to home'}
+        style={{
+          position: 'absolute',
+          top: 'calc(50% - 60px)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 120, height: 120,
+          borderRadius: '50%',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          zIndex: appState === 'landing' ? 15 : 5,
+          display: appState === 'requesting' ? 'none' : 'block',
+        }}
+      />
 
       {/* Video element for MediaPipe — must be in DOM and renderable (not display:none) */}
       <video
@@ -207,7 +206,7 @@ export default function App() {
       )}
 
       {appState === 'requesting' && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 10 }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 20 }}>
           <PermissionModal onGrant={handleGrant} onDeny={handleDeny} />
         </div>
       )}

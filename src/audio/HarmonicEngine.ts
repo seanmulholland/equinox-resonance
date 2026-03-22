@@ -29,6 +29,7 @@ export class HarmonicEngine {
   private reverb: ConvolverNode | null = null
   private reverbGain: GainNode | null = null
   private dryGain: GainNode | null = null
+  private _muted = false
 
   // Noise wash
   private noiseNode: AudioBufferSourceNode | null = null
@@ -57,7 +58,6 @@ export class HarmonicEngine {
     this.waveData = new Float32Array(this.analyser.fftSize) as Float32Array<ArrayBuffer>
 
     this.masterGain.connect(this.ctx.destination)
-    this.masterGain.connect(this.analyser)
 
     // Long reverb — 6s tail, spacious dreamscape
     this.reverb = this.ctx.createConvolver()
@@ -96,7 +96,7 @@ export class HarmonicEngine {
     }
 
     // Gentle fade in
-    this.masterGain.gain.linearRampToValueAtTime(0.35, this.ctx.currentTime + 5)
+    this.masterGain.gain.linearRampToValueAtTime(0.55, this.ctx.currentTime + 5)
   }
 
   // ─── Noise Wash ──────────────────────────────────────────────────
@@ -139,7 +139,7 @@ export class HarmonicEngine {
     lfoGain.connect(this.noiseFilter.frequency)
 
     this.noiseGain = this.ctx.createGain()
-    this.noiseGain.gain.value = 0.12  // quiet background texture
+    this.noiseGain.gain.value = 0.25  // background texture
 
     this.noiseNode.connect(this.noiseFilter)
     this.noiseFilter.connect(this.noiseGain)
@@ -162,12 +162,12 @@ export class HarmonicEngine {
       // Pick a random note from the scale, 1-2 octaves down
       const note = SCALE[Math.floor(Math.random() * SCALE.length)]
       const octave = Math.random() < 0.3 ? 0.25 : 0.5
-      this.playPad(note * octave, now, 6 + Math.random() * 4, 0.06)
+      this.playPad(note * octave, now, 6 + Math.random() * 4, 0.12)
 
       // Sometimes layer a solfeggio harmony
       if (Math.random() < 0.3) {
         const sf = SOLFEGGIO[Math.floor(Math.random() * SOLFEGGIO.length)]
-        this.playPad(sf * 0.5, now + 1.5, 5 + Math.random() * 3, 0.03)
+        this.playPad(sf * 0.5, now + 1.5, 5 + Math.random() * 3, 0.06)
       }
 
       // Next pad in 4-8 seconds — creates breathing room
@@ -218,7 +218,7 @@ export class HarmonicEngine {
       const note = SCALE[Math.floor(Math.random() * SCALE.length)]
       // 1-2 octaves UP for sparkle
       const octave = Math.random() < 0.5 ? 2 : 4
-      this.playSparkle(note * octave, now, 0.02 + Math.random() * 0.02)
+      this.playSparkle(note * octave, now, 0.04 + Math.random() * 0.04)
 
       // Next sparkle in 3-10 seconds
       const next = 3000 + Math.random() * 7000
@@ -307,14 +307,26 @@ export class HarmonicEngine {
   }
 
   reactToInput(rms: number) {
-    if (!this.ctx || !this.masterGain) return
+    if (!this.ctx || !this.masterGain || this._muted) return
     const t = this.ctx.currentTime
-    const vol = 0.35 + rms * 0.25
-    this.masterGain.gain.linearRampToValueAtTime(Math.min(vol, 0.6), t + 0.1)
+    const vol = 0.55 + rms * 0.25
+    this.masterGain.gain.linearRampToValueAtTime(Math.min(vol, 0.8), t + 0.1)
   }
 
-  resume()  { this.ctx?.resume() }
-  suspend() { this.ctx?.suspend() }
+  resume() {
+    this._muted = false
+    if (!this.masterGain || !this.ctx) return
+    this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime)
+    this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, this.ctx.currentTime)
+    this.masterGain.gain.linearRampToValueAtTime(0.55, this.ctx.currentTime + 0.3)
+  }
+  suspend() {
+    this._muted = true
+    if (!this.masterGain || !this.ctx) return
+    this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime)
+    this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, this.ctx.currentTime)
+    this.masterGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.3)
+  }
 
   destroy() {
     if (this.padTimer) clearTimeout(this.padTimer)

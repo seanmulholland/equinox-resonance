@@ -254,7 +254,7 @@ export function AvatarConstellation({ audioDataRef, landmarks, mode }: Props) {
   return (
     <group>
       {/* Rainbow halo ring — retro album art aesthetic, frames the face */}
-      <mesh ref={haloRef} position={[0, 0, 0]}>
+      <mesh ref={haloRef} position={[0, 0, -1]} renderOrder={-1}>
         <ringGeometry ref={haloGeoRef} args={[2.8, 3.3, 80]} />
         <meshBasicMaterial
           vertexColors
