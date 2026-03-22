@@ -14,12 +14,12 @@ interface Props {
 }
 
 const RADIUS = 7
-// ~2.5 revolutions per minute within the allowed range
-const BASE_SPEED = 0.26
+// Slow, sweeping wander across the full view
+const BASE_SPEED = 0.18
 
 /**
- * CameraOrbit — continuously orbits the camera along a Lissajous figure-8 path.
- * Always moving, ~2-3 full sweeps per minute within ±60° azimuth.
+ * CameraOrbit — continuously orbits the camera along a Lissajous path.
+ * Wanders across the full spherical range for immersive coverage.
  * Disables itself when user is dragging (handled by parent via `enabled` prop).
  */
 function CameraOrbit({ enabled }: { enabled: boolean }) {
@@ -31,12 +31,13 @@ function CameraOrbit({ enabled }: { enabled: boolean }) {
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
 
-    // Lissajous base values (always computed so offsets stay in sync)
-    // Azimuth capped to ±0.55 rad (~31°) so with offset we stay within ±60°
-    const baseAz = Math.sin(t * BASE_SPEED) * 0.55
-                 + Math.sin(t * BASE_SPEED * 1.618) * 0.08
-    const basePol = Math.sin(t * BASE_SPEED * 0.7) * 0.3
-                  + Math.sin(t * BASE_SPEED * 0.43) * 0.12
+    // Lissajous base values — fills ±60° (π/3 ≈ 1.047) organically
+    const baseAz = Math.sin(t * BASE_SPEED) * 0.75
+                 + Math.sin(t * BASE_SPEED * 1.618) * 0.2
+                 + Math.sin(t * BASE_SPEED * 0.37) * 0.1
+    const basePol = Math.sin(t * BASE_SPEED * 0.7) * 0.75
+                  + Math.sin(t * BASE_SPEED * 0.43) * 0.2
+                  + Math.sin(t * BASE_SPEED * 1.13) * 0.1
 
     // When re-enabling after drag, compute offset so we resume from current camera pos
     if (enabled && !wasEnabled.current) {
@@ -50,10 +51,10 @@ function CameraOrbit({ enabled }: { enabled: boolean }) {
 
     if (!enabled) return
 
-    // Clamp to ±60° azimuth, same polar range as OrbitControls
-    const AZ_LIMIT = Math.PI / 3  // 60°
-    const az = Math.max(-AZ_LIMIT, Math.min(AZ_LIMIT, baseAz + azOffset.current))
-    const pol = Math.max(Math.PI * 0.3, Math.min(Math.PI * 0.7, (Math.PI * 0.5) + basePol + polOffset.current))
+    // ±60° in both axes — stay in front of the viz
+    const LIMIT = Math.PI / 3  // 60°
+    const az = Math.max(-LIMIT, Math.min(LIMIT, baseAz + azOffset.current))
+    const pol = Math.max(Math.PI * 0.5 - LIMIT, Math.min(Math.PI * 0.5 + LIMIT, (Math.PI * 0.5) + basePol + polOffset.current))
 
     camera.position.x = RADIUS * Math.sin(pol) * Math.sin(az)
     camera.position.y = RADIUS * Math.cos(pol)
@@ -123,8 +124,8 @@ function SceneInner({ audioDataRef, landmarks, appState }: Props) {
         rotateSpeed={0.35}
         enableDamping
         dampingFactor={0.06}
-        minPolarAngle={Math.PI * 0.3}
-        maxPolarAngle={Math.PI * 0.7}
+        minPolarAngle={Math.PI / 2 - Math.PI / 3}
+        maxPolarAngle={Math.PI / 2 + Math.PI / 3}
         minAzimuthAngle={-Math.PI / 3}
         maxAzimuthAngle={Math.PI / 3}
       />
