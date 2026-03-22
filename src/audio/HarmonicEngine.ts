@@ -269,7 +269,7 @@ export class HarmonicEngine {
 
   getAudioData(): AudioData {
     if (!this.analyser || !this.ctx) {
-      return { frequency: new Float32Array(0), waveform: new Float32Array(0), bass: 0, mid: 0, high: 0, rms: 0 }
+      return { frequency: new Float32Array(0), waveform: new Float32Array(0), bass: 0, mid: 0, high: 0, rms: 0, micRms: 0 }
     }
 
     this.analyser.getFloatFrequencyData(this.freqData)
@@ -295,6 +295,7 @@ export class HarmonicEngine {
       mid:   avg(250, 4000),
       high:  avg(4000, 20000),
       rms,
+      micRms: this.getMicRms(),
     }
   }
 

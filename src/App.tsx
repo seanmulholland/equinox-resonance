@@ -23,9 +23,7 @@ function CornerSwatches() {
   // Each corner: corner swatch at the corner point, 2 more along X, 2 more along Y
   // Colors rotate per corner so each gets a different slice of the 7
   const step = SZ + GAP // 34px between swatch centers
-  const corners: Array<{ bx: number; by: number; dx: 1 | -1; dy: 1 | -1; colorOff: number }> = []
-
-  // We'll compute positions in render using viewport-relative positioning via CSS
+  // Positions computed via viewport-relative CSS
   return (
     <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 3 }}>
       {/* Top-left */}
